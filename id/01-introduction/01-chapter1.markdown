@@ -112,9 +112,9 @@ Staging area adalah sebuah berkas sederhana, umumnya berada dalam direktori Git 
 
 Alur kerja dasar Git adalah seperti ini:
 
-1.	Anda mengubah berkas dalam direktori kerja anda.
-2.	Anda membawa berkas ke stage, menambahkan snapshotnya ke staging area.
-3.	Anda melakukan commit, yang mengambil berkas seperti yang ada di staging area dan menyimpan snapshotnya secara permanen ke direktori Git anda.
+1. Anda mengubah berkas dalam direktori kerja anda.
+2. Anda membawa berkas ke stage, menambahkan snapshotnya ke staging area.
+3. Anda melakukan commit, yang mengambil berkas seperti yang ada di staging area dan menyimpan snapshotnya secara permanen ke direktori Git anda.
 
 Jika sebuah versi tertentu dari sebuah berkas telah ada di direktori git, ia dianggap 'committed'. Jika berkas diubah (modified) tetapi sudah ditambahkan ke staging area, maka itu adalah 'staged'. Dan jika berkas telah diubah sejak terakhir dilakukan checked out tetapi belum ditambahkan ke staging area maka itu adalah 'modified'. Pada Bab 2, anda akan mempelajari lebih lanjut mengenai keadaan-keadaan ini dan bagaimana anda dapat memanfaatkan keadaan-keadaan tersebut ataupun melewatkan bagian 'staged' seluruhnya.
 
@@ -157,13 +157,13 @@ Jika anda ingin menginstall Git di Linux menggunakan installer biner, anda bisa 
 
 Atau jika anda menggunakan distro berbasis Debian seperti Ubuntu, coba gunakan apt-get:
 
-	$ apt-get install git-core
+	$ apt-get install git
 
 ### Menginstall Git pada Mac ###
 
-Terdapat dua cara mudah untuk menginstal Git pada sebuah komputer Mac. Cara termudah adalah menggunakan installer Git berbasis GUI, yang dapat anda peroleh dari halaman Google Code (lihat Gambar 1-7):
+Terdapat dua cara mudah untuk menginstal Git pada sebuah komputer Mac. Cara termudah adalah menggunakan installer Git berbasis GUI, yang dapat anda peroleh dari halaman SourceForge (lihat Gambar 1-7):
 
-	http://code.google.com/p/git-osx-installer
+	http://sourceforge.net/projects/git-osx-installer/
 
 Insert 18333fig0107.png 
 Gambar 1-7. Git OS X installer.
@@ -176,9 +176,9 @@ Anda tidak harus menambahkan extras-nya, tetapi anda mungkin membutuhkan +svn ji
 
 ### Menginstall pada Sistem Operasi Windows ###
 
-Menginstall Git pada Windows sangatlah mudah. Cara termudah dapat anda peroleh dengan menggunakan msysGit. Cukup download file installernya dari halaman Google Code, lalu eksekusi.
+Menginstall Git pada Windows sangatlah mudah. Cara termudah dapat anda peroleh dengan menggunakan msysGit. Cukup download file installernya dari halaman GitHub, lalu eksekusi.
 
-	http://code.google.com/p/msysgit
+	http://msysgit.github.com/
 
 Setelah terinstall, anda akan memperoleh versi command-line (bersama dengan klien SSH yang praktis) dan versi GUI-nya.
 

@@ -1,4 +1,4 @@
-# Los entesijos internos de Git #
+# Los entresijos internos de Git #
 
 Puedes que hayas llegado a este capítulo saltando desde alguno previo o puede que hayas llegado tras leer todo el resto del libro. --En uno u otro caso, aquí es donde aprenderás acerca del funcionamiento interno y la implementación de Git--. Me parece que esta información es realmente importante para entender cúan util y potente es Git. Pero algunas personas opinan que puede ser confuso e innecesariamente complejo para novatos. Por ello, lo he puesto al final del libro; de tal forma que puedas leerlo antes o después, en cualquier momento, a lo largo de tu proceso de aprendizaje. Lo dejo en tus manos.
 
@@ -509,9 +509,9 @@ Los otros archivos presentes son el nuevo archivo empaquetador y un índice. El 
 	484a59275031909e19aadb7c92262719cfcdf19a commit 226 153 169
 	83baae61804e65cc73a7201a7252750c76066a30 blob   10 19 5362
 	9585191f37f7b0fb9444f35a9bf50de191beadc2 tag    136 127 5476
-	9bc1dc421dcd51b4ac296e3e5b6e2a99cf44391e blob   7 18 5193 1
-	05408d195263d853f09dca71d55116663690c27c \
-	  ab1afef80fac8e34258ff41fc1b867c702daa24b commit 232 157 12
+	9bc1dc421dcd51b4ac296e3e5b6e2a99cf44391e blob   7 18 5193 1 \
+	  05408d195263d853f09dca71d55116663690c27c
+	ab1afef80fac8e34258ff41fc1b867c702daa24b commit 232 157 12
 	cac0cab538b970a37ea1e769cbbde608743bc96d commit 226 154 473
 	d8329fc1cc938780ffdd9f94e0d364e0ea74f579 tree   36 46 5316
 	e3f094f522629ae358806b17daf78246c27c007b blob   1486 734 4352
@@ -931,7 +931,7 @@ El archivo enorme es el último: 2 MB  (2056716 Bytes para ser exactos). Para co
 
 Una vez tengas ese dato, lo puedes utilizar para borrar ese archivo en todos los árboles pasados. Es sencillo revisar cuales son las confirmaciones de cambios donde interviene ese archivo:
 
-	$ git log --pretty=oneline -- git.tbz2
+	$ git log --pretty=oneline --branches -- git.tbz2
 	da3f30d019005479c99eb4c3406225613985a1db oops - removed large tarball
 	6df764092f3e7c8f5f94cbe08ee5cf42e92a0289 added git tarball
 

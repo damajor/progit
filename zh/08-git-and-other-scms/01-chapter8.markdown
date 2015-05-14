@@ -29,14 +29,14 @@ Git 中所有 Subversion 桥接命令的基础是 `git svn` 。所有的命令�
 
 然后，允许所有用户修改 revprop —— 简单的做法是添加一个总是以 0 作为返回值的 pre-revprop-change 脚本：
 
-	$ cat /tmp/test-svn/hooks/pre-revprop-change 
+	$ cat /tmp/test-svn/hooks/pre-revprop-change
 	#!/bin/sh
 	exit 0;
 	$ chmod +x /tmp/test-svn/hooks/pre-revprop-change
 
 现在可以调用 `svnsync init` 加目标仓库，再加源仓库的格式来把该项目同步到本地了：
 
-	$ svnsync init file:///tmp/test-svn http://progit-example.googlecode.com/svn/ 
+	$ svnsync init file:///tmp/test-svn http://progit-example.googlecode.com/svn/
 
 这将建立进行同步所需的属性。可以通过运行以下命令来克隆代码：
 
@@ -70,7 +70,7 @@ Git 中所有 Subversion 桥接命令的基础是 `git svn` 。所有的命令�
 	Checked out HEAD:
 	 file:///tmp/test-svn/branches/my-calc-branch r76
 
-这相当于针对所提供的 URL 运行了两条命令—— `git svn init` 加上 `gitsvn fetch` 。可能会花上一段时间。我们所用的测试项目仅仅包含 75 次提交并且它的代码量不算大，所以只有几分钟而已。不过，Git 仍然需要提取每一个版本，每次一个，再逐个提交。对于一个包含成百上千次提交的项目，花掉的时间则可能是几小时甚至数天。
+这相当于针对所提供的 URL 运行了两条命令—— `git svn init` 加上 `git svn fetch` 。可能会花上一段时间。我们所用的测试项目仅仅包含 75 次提交并且它的代码量不算大，所以只有几分钟而已。不过，Git 仍然需要提取每一个版本，每次一个，再逐个提交。对于一个包含成百上千次提交的项目，花掉的时间则可能是几小时甚至数天。
 
 `-T trunk -b branches -t tags` 告诉 Git 该 Subversion 仓库遵循了基本的分支和标签命名法则。如果你的主干(译注：trunk，相当于非分布式版本控制里的master分支，代表开发的主线），分支或者标签以不同的方式命名，则应做出相应改变。由于该法则的常见性，可以使用 `-s` 来代替整条命令，它意味着标准布局（s 是 Standard layout 的首字母），也就是前面选项的内容。下面的命令有相同的效果：
 
@@ -108,7 +108,7 @@ Git 中所有 Subversion 桥接命令的基础是 `git svn` 。所有的命令�
 
 这里有两个远程服务器：一个名为 `gitserver` ，具有一个 `master`分支；另一个叫 `origin`，具有 `master` 和 `testing` 两个分支。
 
-注意本例中通过 `git svn` 导入的远程引用，（Subversion 的)标签是当作远程分支添加的，而不是真正的 Git 标签。导入的 Subversion 仓库仿佛是有一个带有不同分支的 tags 远程服务器。
+注意本例中通过 `git svn` 导入的远程引用，（Subversion 的）标签是当作远程分支添加的，而不是真正的 Git 标签。导入的 Subversion 仓库仿佛是有一个带有不同分支的 tags 远程服务器。
 
 ### 提交到 Subversion ###
 
@@ -190,7 +190,7 @@ Git 中所有 Subversion 桥接命令的基础是 `git svn` 。所有的命令�
 
 这一点需要牢记，因为它的结果是推送之后项目处于一个不完整存在与任何主机上的状态。如果做出的修改无法兼容但没有产生冲突，则可能造成一些很难确诊的难题。这和使用 Git 服务器是不同的——在 Git 世界里，发布之前，你可以在客户端系统里完整的测试项目的状态，而在 SVN 永远都没法确保提交前后项目的状态完全一样。
 
-及时还没打算进行提交，你也应该用这个命令从 Subversion 服务器拉取最新修改。`sit svn fetch` 能获取最新的数据，不过 `git svn rebase` 才会在获取之后在本地进行更新 。
+即使还没打算进行提交，你也应该用这个命令从 Subversion 服务器拉取最新修改。`sit svn fetch` 能获取最新的数据，不过 `git svn rebase` 才会在获取之后在本地进行更新 。
 
 	$ git svn rebase
 	       M      generate_descriptor_proto.sh
@@ -202,7 +202,7 @@ Git 中所有 Subversion 桥接命令的基础是 `git svn` 。所有的命令�
 
 ### Git 分支问题 ###
 
-习惯了 Git 的工作流程以后，你可能会创建一些特性分支，完成相关的开发工作，然后合并他们。如果要用 git svn 向 Subversion 推送内容，那么最好是每次用衍合来并入一个单一分支，而不是直接合并。使用衍合的原因是 Subversion 只有一个线性的历史而不像 Git 那样处理合并，所以 Git svn 在把快照转换为 Subversion 的 commit 时只能包含第一个祖先。
+习惯了 Git 的工作流程以后，你可能会创建一些特性分支，完成相关的开发工作，然后合并他们。如果要用 `git svn` 向 Subversion 推送内容，那么最好是每次用衍合来并入一个单一分支，而不是直接合并。使用衍合的原因是 Subversion 只有一个线性的历史而不像 Git 那样处理合并，所以 `git svn` 在把快照转换为 Subversion 的 commit 时只能包含第一个祖先。
 
 假设分支历史如下：创建一个 `experiment` 分支，进行两次提交，然后合并到 `master` 。在 `dcommit` 的时候会得到如下输出：
 
@@ -231,12 +231,11 @@ Git 中所有 Subversion 桥接命令的基础是 `git svn` 。所有的命令�
 
 ### Subversion 分支 ###
 
-Subversion 的分支和 Git 中的不尽相同；避免过多的使用可能是最好方案。不过，用 git svn 创建和提交不同的 Subversion 分支仍是可行的。
+Subversion 的分支和 Git 中的不尽相同；避免过多的使用可能是最好方案。不过，用 `git svn` 创建和提交不同的 Subversion 分支仍是可行的。
 
 #### 创建新的 SVN 分支 ####
 
-要在 Subversion 中建立一个新分支，需要运行 `git svn branch [分支名]`
-To create a new branch in Subversion, you run `git svn branch [branchname]`:
+要在 Subversion 中建立一个新分支，需要运行 `git svn branch [分支名]` ：
 
 	$ git svn branch opera
 	Copying file:///tmp/test-svn/trunk at r87 to file:///tmp/test-svn/branches/opera...
@@ -247,7 +246,7 @@ To create a new branch in Subversion, you run `git svn branch [branchname]`:
 	Successfully followed parent
 	r89 = 9b6fe0b90c5c9adf9165f700897518dbc54a7cbf (opera)
 
-相当于在 Subversion 中的 `svn copy trunk branches/opera` 命令并且对 Subversion 服务器进行了相关操作。值得提醒的是它没有检出和转换到那个分支；如果现在进行提交，将提交到服务器上的 `trunk`， 而非 `opera`。
+这相当于在 Subversion 中的 `svn copy trunk branches/opera` 命令，并会对 Subversion 服务器进行相关操作。值得注意的是它没有检出和转换到那个分支；如果现在进行提交，将提交到服务器上的 `trunk`， 而非 `opera`。
 
 ### 切换当前分支 ###
 
@@ -282,7 +281,7 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 
 	------------------------------------------------------------------------
 	r85 | schacon | 2009-05-02 16:00:09 -0700 (Sat, 02 May 2009) | 2 lines
-	
+
 	updated the changelog
 
 关于 `git svn log` ，有两点需要注意。首先，它可以离线工作，不像 `svn log` 命令，需要向 Subversion 服务器索取数据。其次，它仅仅显示已经提交到 Subversion 服务器上的 commit。在本地尚未 dcommit 的 Git 数据不会出现在这里；其他人向 Subversion 服务器新提交的数据也不会显示。等于说是显示了最近已知 Subversion 服务器上的状态。
@@ -291,19 +290,19 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 
 类似 `git svn log` 对 `git log` 的模拟，`svn annotate` 的等效命令是 `git svn blame [文件名]`。其输出如下：
 
-	$ git svn blame README.txt 
+	$ git svn blame README.txt
 	 2   temporal Protocol Buffers - Google's data interchange format
 	 2   temporal Copyright 2008 Google Inc.
 	 2   temporal http://code.google.com/apis/protocolbuffers/
-	 2   temporal 
+	 2   temporal
 	22   temporal C++ Installation - Unix
 	22   temporal =======================
-	 2   temporal 
+	 2   temporal
 	79    schacon Committing in git-svn.
-	78    schacon 
+	78    schacon
 	 2   temporal To build and install the C++ Protocol Buffer runtime and the Protocol
 	 2   temporal Buffer compiler (protoc) execute the following:
-	 2   temporal 
+	 2   temporal
 
 同样，它不显示本地的 Git 提交以及 Subversion 上后来更新的内容。
 
@@ -363,13 +362,14 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 
 通过该命令可以获得 SVN 作者的列表：
 
-	$ svn log --xml | grep author | sort -u | perl -pe 's/.>(.?)<./$1 = /'
+	$ svn log ^/ --xml | grep -P "^<author" | sort -u | \
+	      perl -pe 's/<author>(.*?)<\/author>/$1 = /' > users.txt
 
 它将输出 XML 格式的日志——你可以找到作者，建立一个单独的列表，然后从 XML 中抽取出需要的信息。（显而易见，本方法要求主机上安装了`grep`，`sort` 和 `perl`.）然后把输出重定向到 user.txt 文件，然后就可以在每一项的后面添加相应的 Git 用户数据。
 
 为 `git svn` 提供该文件可以然它更精确的映射作者数据。你还可以在 `clone` 或者 `init`后面添加 `--no-metadata` 来阻止 `git svn` 包含那些 Subversion 的附加信息。这样 `import` 命令就变成了：
 
-	$ git-svn clone http://my-project.googlecode.com/svn/ \
+	$ git svn clone http://my-project.googlecode.com/svn/ \
 	      --authors-file=users.txt --no-metadata -s my_project
 
 现在 `my_project` 目录下导入的 Subversion 应该比原来整洁多了。原来的 commit 看上去是这样：
@@ -396,15 +396,13 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 
 要把标签变成合适的 Git 标签，运行
 
-	$ cp -Rf .git/refs/remotes/tags/* .git/refs/tags/
-	$ rm -Rf .git/refs/remotes/tags
+	$ git for-each-ref refs/remotes/tags | cut -d / -f 4- | grep -v @ | while read tagname; do git tag "$tagname" "tags/$tagname"; git branch -r -d "tags/$tagname"; done
 
 该命令将原本以 `tag/` 开头的远程分支的索引变成真正的（轻巧的）标签。
 
 接下来，把 `refs/remotes` 下面剩下的索引变成本地分支：
 
-	$ cp -Rf .git/refs/remotes/* .git/refs/heads/
-	$ rm -Rf .git/refs/remotes
+	$ git for-each-ref refs/remotes | cut -d / -f 3- | grep -v @ | while read branchname; do git branch "$branchname" "refs/remotes/$branchname"; git branch -r -d "$branchname"; done
 
 现在所有的旧分支都变成真正的 Git 分支，所有的旧标签也变成真正的 Git 标签。最后一项工作就是把新建的 Git 服务器添加为远程服务器并且向它推送。下面是新增远程服务器的例子：
 
@@ -413,6 +411,7 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 为了让所有的分支和标签都得到上传，我们使用这条命令：
 
 	$ git push origin --all
+	$ git push origin --tags
 
 所有的分支和标签现在都应该整齐干净的躺在新的 Git 服务器里了。
 
@@ -500,7 +499,7 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 
 为了导入到一个 Git 目录，我们首先回顾一下 Git 储存数据的方式。你可能还记得，Git 本质上是一个 commit 对象的链表，每一个对象指向一个内容的快照。而这里需要做的工作就是告诉 `fast-import` 内容快照的位置，什么样的 commit 数据指向它们，以及它们的顺序。我们采取一次处理一个快照的策略，为每一个内容目录建立对应的 commit ，每一个 commit 与之前的建立链接。
 
-正如在第七章 "Git 执行策略一例" 一节中一样，我们将使用 Ruby 来编写这个脚本，因为它是我日常使用的语言而且阅读起来简单一些。你可以用任何其他熟悉的语言来重写这个例子——它仅需要把必要的信息打印到标准输出而已。同时，如果你在使用 Windows，这意味着你要特别留意不要在换行的时候引入回车符（译注：carriage returns，Windows 换行时加入的符号，通常说的 `\r` ）—— Git 的 fast-import 对仅使用换行符（LF）而非 Windows 的回车符（CRLF）要求非常严格。
+正如在第七章 "Git 执行策略一例" 一节中一样，我们将使用 Ruby 来编写这个脚本，因为它是我日常使用的语言而且阅读起来简单一些。你可以用任何其他熟悉的语言来重写这个例子——它仅需要把必要的信息打印到标准输出而已。同时，如果你在使用 Windows，这意味着你要特别留意不要在换行的时候引入回车符（译注：carriage returns，Windows 换行时加入的符号，通常说的 `\r` ）—— `git fast-import` 对仅使用换行符（LF）而非 Windows 的回车符（CRLF）要求非常严格。
 
 首先，进入目标目录并且找到所有子目录，每一个子目录将作为一个快照被导入为一个 commit。我们将依次进入每一个子目录并打印所需的命令来导出它们。脚本的主循环大致是这样：
 
@@ -512,7 +511,7 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 	    next if File.file?(dir)
 
 	    # 进入目标目录
-	    Dir.chdir(dir) do 
+	    Dir.chdir(dir) do
 	      last_mark = print_export(dir, last_mark)
 	    end
 	  end
@@ -575,7 +574,8 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 唯一剩下的就是每一个快照的内容了。这简单的很，因为它们分别处于一个目录——你可以输出 `deleeall` 命令，随后是目录中每个文件的内容。Git 会正确的记录每一个快照：
 
 	puts 'deleteall'
-	Dir.glob("**/*").each do |file| next if !File.file?(file)
+	Dir.glob("**/*").each do |file|
+	  next if !File.file?(file)
 	  inline_data(file)
 	end
 
@@ -601,13 +601,13 @@ Git 通过搜寻提交历史中 Subversion 分支的头部来决定 dcommit 的�
 
 	return mark
 
-注意：如果你在用 Windows，一定记得添加一项额外的步骤。前面提过，Windows 使用 CRLF 作为换行字符而 Git fast-import 只接受 LF。为了绕开这个问题来满足 git fast-import，你需要让 ruby 用 LF 取代 CRLF：
+注意：如果你在用 Windows，一定记得添加一项额外的步骤。前面提过，Windows 使用 CRLF 作为换行字符而 `git fast-import` 只接受 LF。为了绕开这个问题来满足 `git fast-import`，你需要让 ruby 用 LF 取代 CRLF：
 
 	$stdout.binmode
 
 搞定了。现在运行该脚本，你将得到如下内容：
 
-	$ ruby import.rb /opt/import_from 
+	$ ruby import.rb /opt/import_from
 	commit refs/heads/master
 	mark :1
 	committer Scott Chacon <schacon@geemail.com> 1230883200 -0700

@@ -142,7 +142,7 @@ Si lo quieres probar, P4Merge funciona en todas las principales plataformas. Los
 
 P4Merge se puede descargar desde:
 
-	http://www.perforce.com/perforce/downloads/component.html
+	http://www.perforce.com/product/components/perforce-visual-merge-and-diff-tools
 
 Para empezar, tienes que preparar los correspondientes scripts para lanzar tus comandos. En estos ejemplos, voy a utilizar caminos y nombres Mac para los ejecutables; en otros sistemas, tendrás que sustituirlos por los correspondientes donde tengas instalado 'p4merge'. El primer script a preparar es uno al que denominaremos 'extMerge', para llamar al ejecutable con los correspodientes argumentos:
 
@@ -165,7 +165,7 @@ Además has de asegurarte de que estas herramientas son ejecutables:
 	$ sudo chmod +x /usr/local/bin/extMerge 
 	$ sudo chmod +x /usr/local/bin/extDiff
 
-Una vez preparado todo esto, puedes ajustar el archivo de configuración para utilizar tus herramientas personalizadas de comparación y resolución de conflictos. Tenemos varios parámetros a ajustar: 'merge.tool' para indicar a Git la estrategia que ha de usar, 'mergetool.*.cmd' para especificar como lanzar el comando, 'mergetool.trustExitCode' para decir a Git si el código de salida del programa indica una fusión con éxito o no, y 'diff.external' para decir a Git qué comando lanzar para realizar comparaciones.  Es decir, has de ejecutar cuatro comandos de configuración:
+Una vez preparado todo esto, puedes ajustar el archivo de configuración para utilizar tus herramientas personalizadas de comparación y resolución de conflictos. Tenemos varios parámetros a ajustar: 'merge.tool' para indicar a Git la estrategia que ha de usar, `mergetool.*.cmd` para especificar como lanzar el comando, 'mergetool.trustExitCode' para decir a Git si el código de salida del programa indica una fusión con éxito o no, y 'diff.external' para decir a Git qué comando lanzar para realizar comparaciones.  Es decir, has de ejecutar cuatro comandos de configuración:
 
 	$ git config --global merge.tool extMerge
 	$ git config --global mergetool.extMerge.cmd \
@@ -178,7 +178,7 @@ o puedes editar tu archivo '~/.gitconfig' para añadirle las siguientes lineas:
 	[merge]
 	  tool = extMerge
 	[mergetool "extMerge"]
-	  cmd = extMerge "$BASE" "$LOCAL" "$REMOTE" "$MERGED"
+	  cmd = extMerge \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\"
 	  trustExitCode = false
 	[diff]
 	  external = extDiff
@@ -395,7 +395,7 @@ Figura 7-2. El filtro "smudge" se usa al extraer (checkout).
 Insert 18333fig0703.png 
 Figura 7-3. El filtro "clean" se usa al almacenar (staged).
 
-El mensaje de confirmación para esta funcionalidad nos da un ejemplo simple: el de pasar todo tu código fuente C por el programa'indent' antes de almacenarlo. Puedes hacerlo poniendo los atributos adecuados en tu archivo '.gitattributes', para filtrar los archivos '*.c' a través de "indent":
+El mensaje de confirmación para esta funcionalidad nos da un ejemplo simple: el de pasar todo tu código fuente C por el programa'indent' antes de almacenarlo. Puedes hacerlo poniendo los atributos adecuados en tu archivo '.gitattributes', para filtrar los archivos `*.c` a través de "indent":
 
 	*.c     filter=indent
 
@@ -404,7 +404,7 @@ E indicando después que el filtro "indent" actuará al manchar (smudge) y al li
 	$ git config --global filter.indent.clean indent
 	$ git config --global filter.indent.smudge cat
 
-En este ejemplo, cuando confirmes cambios (commit) en archivos con extensión '*.c', Git los pasará previamente a través del programa 'indent' antes de confirmarlos, y los pasará a través del programa 'cat' antes de extraerlos de vuelta al disco. El programa 'cat' es básicamente transparente: de él salen los mismos datos que entran. El efecto final de esta combinación es el de filtrar todo el código fuente C a través de 'indent' antes de confirmar cambios en él.
+En este ejemplo, cuando confirmes cambios (commit) en archivos con extensión `*.c`, Git los pasará previamente a través del programa 'indent' antes de confirmarlos, y los pasará a través del programa 'cat' antes de extraerlos de vuelta al disco. El programa 'cat' es básicamente transparente: de él salen los mismos datos que entran. El efecto final de esta combinación es el de filtrar todo el código fuente C a través de 'indent' antes de confirmar cambios en él.
 
 Otro ejemplo interesante es el de poder conseguir una expansión de la clave '$Date$' del estilo de RCS. Para hacerlo, necesitas un pequeño script que coja el nombre de un archivo, localice la fecha de la última confirmación de cambios en el proyecto, e inserte dicha información en el archivo. Este podria ser un pequeño script Ruby para hacerlo:
 
@@ -670,8 +670,8 @@ Utilizando la estructura ACL devuelta por el método 'get_acl_access_data' y com
 	      next if path.size == 0
 	      has_file_access = false
 	      access[$user].each do |access_path|
-	        if !access_path  # user has access to everything
-	          || (path.index(access_path) == 0) # access to this path
+	        if !access_path || # user has access to everything
+	          (path.index(access_path) == 0) # access to this path
 	          has_file_access = true 
 	        end
 	      end

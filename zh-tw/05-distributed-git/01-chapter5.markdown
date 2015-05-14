@@ -1,76 +1,76 @@
-# Distributed Git #
+# 分散式 Git #
 
-Now that you have a remote Git repository set up as a point for all the developers to share their code, and you’re familiar with basic Git commands in a local workflow, you’ll look at how to utilize some of the distributed workflows that Git affords you.
+為了便於專案中的所有開發者分享代碼，我們準備好了一台伺服器存放遠端 Git 倉庫。經過前面幾章的學習，我們已經學會了一些基本的本地工作流程中所需用到的命令。接下來，我們要學習下如何利用 Git 來組織和完成分散式工作流程。
 
-In this chapter, you’ll see how to work with Git in a distributed environment as a contributor and an integrator. That is, you’ll learn how to contribute code successfully to a project and make it as easy on you and the project maintainer as possible, and also how to maintain a project successfully with a number of developers contributing.
+特別是，當作為項目貢獻者時，我們該怎麼做才能方便維護者採納更新；或者作為專案維護者時，又該怎樣有效管理大量貢獻者的提交。
 
-## Distributed Workflows ##
+## 分散式工作流程 ##
 
-Unlike Centralized Version Control Systems (CVCSs), the distributed nature of Git allows you to be far more flexible in how developers collaborate on projects. In centralized systems, every developer is a node working more or less equally on a central hub. In Git, however, every developer is potentially both a node and a hub — that is, every developer can both contribute code to other repositories and maintain a public repository on which others can base their work and which they can contribute to. This opens a vast range of workflow possibilities for your project and/or your team, so I’ll cover a few common paradigms that take advantage of this flexibility. I’ll go over the strengths and possible weaknesses of each design; you can choose a single one to use, or you can mix and match features from each.
+同傳統的集中式版本控制系統（CVCS）不同，開發者之間的協作方式因著 Git 的分散式特性而變得更為靈活多樣。在集中式系統上，每個開發者就像是連接在集線器上的節點，彼此的工作方式大體相像。而在 Git 網路中，每個開發者同時扮演著節點和集線器的角色，這就是說，每一個開發者都可以將自己的代碼貢獻到另外一個開發者的倉庫中，或者建立自己的公共倉庫，讓其他開發者基於自己的工作開始，為自己的倉庫貢獻代碼。於是，Git 的分散式協作便可以衍生出種種不同的工作流程，我會在接下來的章節介紹幾種常見的應用方式，並分別討論各自的優缺點。你可以選擇其中的一種，或者結合起來，應用到你自己的專案中。
 
-### Centralized Workflow ###
+### 集中式工作流 ###
 
-In centralized systems, there is generally a single collaboration model—the centralized workflow. One central hub, or repository, can accept code, and everyone synchronizes their work to it. A number of developers are nodes — consumers of that hub — and synchronize to that one place (see Figure 5-1).
+通常，集中式工作流程使用的都是單點協作模型。一個存放代碼倉庫的中心伺服器，可以接受所有開發者提交的代碼。所有的開發者都是普通的節點，作為中心集線器的消費者，平時的工作就是和中心倉庫同步資料（見圖 5-1）。
 
-Insert 18333fig0501.png 
-Figure 5-1. Centralized workflow.
+Insert 18333fig0501.png
+圖 5-1. 集中式工作流
 
-This means that if two developers clone from the hub and both make changes, the first developer to push their changes back up can do so with no problems. The second developer must merge in the first one’s work before pushing changes up, so as not to overwrite the first developer’s changes. This concept is true in Git as it is in Subversion (or any CVCS), and this model works perfectly in Git.
+如果兩個開發者從中心倉庫克隆代碼下來，同時作了一些修訂，那麼只有第一個開發者可以順利地把資料推送到共用伺服器。第二個開發者在提交他的修訂之前，必須先下載合併伺服器上的資料，解決衝突之後才能推送資料到共用伺服器上。在 Git 中這麼用也決無問題，這就好比是在用 Subversion（或其他 CVCS）一樣，可以很好地工作。
 
-If you have a small team or are already comfortable with a centralized workflow in your company or team, you can easily continue using that workflow with Git. Simply set up a single repository, and give everyone on your team push access; Git won’t let users overwrite each other. If one developer clones, makes changes, and then tries to push their changes while another developer has pushed in the meantime, the server will reject that developer’s changes. They will be told that they’re trying to push non-fast-forward changes and that they won’t be able to do so until they fetch and merge.
-This workflow is attractive to a lot of people because it’s a paradigm that many are familiar and comfortable with.
+如果你的團隊不是很大，或者大家都已經習慣了使用集中式工作流程，完全可以採用這種簡單的模式。只需要配置好一台中心伺服器，並給每個人推送資料的許可權，就可以開展工作了。但如果提交代碼時有衝突， Git 根本就不會讓用戶覆蓋他人代碼，它直接駁回第二個人的提交操作。這就等於告訴提交者，你所作的修訂無法通過快近（fast-forward）來合併，你必須先拉取最新資料下來，手工解決衝突合併後，才能繼續推送新的提交。
+絕大多數人都熟悉和瞭解這種模式的工作方式，所以使用也非常廣泛。
 
-### Integration-Manager Workflow ###
+### 集成管理員工作流 ###
 
-Because Git allows you to have multiple remote repositories, it’s possible to have a workflow where each developer has write access to their own public repository and read access to everyone else’s. This scenario often includes a canonical repository that represents the "official" project. To contribute to that project, you create your own public clone of the project and push your changes to it. Then, you can send a request to the maintainer of the main project to pull in your changes. They can add your repository as a remote, test your changes locally, merge them into their branch, and push back to their repository. The process works as follow (see Figure 5-2):
+由於 Git 允許使用多個遠端倉庫，開發者便可以建立自己的公共倉庫，往裡面寫資料並共用給他人，而同時又可以從別人的倉庫中提取他們的更新過來。這種情形通常都會有個代表著官方發佈的專案倉庫（blessed repository），開發者們由此倉庫克隆出一個自己的公共倉庫（developer public），然後將自己的提交推送上去，請求官方倉庫的維護者拉取更新合併到主項目。維護者在自己的本地也有個克隆倉庫（integration manager），他可以將你的公共倉庫作為遠端倉庫添加進來，經過測試無誤後合併到主幹分支，然後再推送到官方倉庫。工作流程看起來就像圖 5-2 所示：
 
-1.	The project maintainer pushes to their public repository.
-2.	A contributor clones that repository and makes changes.
-3.	The contributor pushes to their own public copy.
-4.	The contributor sends the maintainer an e-mail asking them to pull changes.
-5.	The maintainer adds the contributor’s repo as a remote and merges locally.
-6.	The maintainer pushes merged changes to the main repository.
+1. 專案維護者可以推送資料到公共倉庫 blessed repository。
+2. 貢獻者克隆此倉庫，修訂或編寫新代碼。
+3. 貢獻者推送資料到自己的公共倉庫 developer public。
+4. 貢獻者給維護者發送郵件，請求拉取自己的最新修訂。
+5. 維護者在自己本地的 integration manger 倉庫中，將貢獻者的倉庫加為遠程倉庫，合併更新並做測試。
+6. 維護者將合併後的更新推送到主倉庫 blessed repository。
 
-Insert 18333fig0502.png 
-Figure 5-2. Integration-manager workflow.
+Insert 18333fig0502.png
+圖 5-2. 集成管理員工作流
 
-This is a very common workflow with sites like GitHub, where it’s easy to fork a project and push your changes into your fork for everyone to see. One of the main advantages of this approach is that you can continue to work, and the maintainer of the main repository can pull in your changes at any time. Contributors don’t have to wait for the project to incorporate their changes — each party can work at their own pace.
+在 GitHub 網站上使用得最多的就是這種工作流。人們可以複製（fork 亦即克隆）某個項目到自己的列表中，成為自己的公共倉庫。隨後將自己的更新提交到這個倉庫，所有人都可以看到你的每次更新。這麼做最主要的優點在於，你可以按照自己的節奏繼續工作，而不必等待維護者處理你提交的更新；而維護者也可以按照自己的節奏，任何時候都可以過來處理接納你的貢獻。
 
-### Dictator and Lieutenants Workflow ###
+### 司令官與副官工作流 ###
 
-This is a variant of a multiple-repository workflow. It’s generally used by huge projects with hundreds of collaborators; one famous example is the Linux kernel. Various integration managers are in charge of certain parts of the repository; they’re called lieutenants. All the lieutenants have one integration manager known as the benevolent dictator. The benevolent dictator’s repository serves as the reference repository from which all the collaborators need to pull. The process works like this (see Figure 5-3):
+這其實是上一種工作流的變體。一般超大型的專案才會用到這樣的工作方式，像是擁有數百協作開發者的 Linux 內核專案就是如此。各個集成管理員分別負責集成專案中的特定部分，所以稱為副官（lieutenant）。而所有這些集成管理員頭上還有一位負責統籌的總集成管理員，稱為司令官（dictator）。司令官維護的倉庫用於提供所有協作者拉取最新集成的項目代碼。整個流程看起來如圖 5-3 所示：
 
-1.	Regular developers work on their topic branch and rebase their work on top of master. The master branch is that of the dictator.
-2.	Lieutenants merge the developers’ topic branches into their master branch.
-3.	The dictator merges the lieutenants’ master branches into the dictator’s master branch.
-4.	The dictator pushes their master to the reference repository so the other developers can rebase on it.
+1. 一般的開發者在自己的特性分支上工作，並不定期地根據主幹分支（dictator 上的 master）衍合。
+2. 副官（lieutenant）將普通開發者的特性分支合併到自己的 master 分支中。
+3. 司令官（dictator）將所有副官的 master 分支併入自己的 master 分支。
+4. 司令官（dictator）將集成後的 master 分支推送到共用倉庫 blessed repository 中，以便所有其他開發者以此為基礎進行衍合。
 
-Insert 18333fig0503.png  
-Figure 5-3. Benevolent dictator workflow.
+Insert 18333fig0503.png
+圖 5-3. 司令官與副官工作流
 
-This kind of workflow isn’t common but can be useful in very big projects or in highly hierarchical environments, because as it allows the project leader (the dictator) to delegate much of the work and collect large subsets of code at multiple points before integrating them.
+這種工作流程並不常用，只有當專案極為龐雜，或者需要多級別管理時，才會體現出優勢。利用這種方式，專案總負責人（即司令官）可以把大量分散的集成工作委託給不同的小組負責人分別處理，最後再統籌起來，如此各人的職責清晰明確，也不易出錯（譯注：此乃分而治之）。
 
-These are some commonly used workflows that are possible with a distributed system like Git, but you can see that many variations are possible to suit your particular real-world workflow. Now that you can (I hope) determine which workflow combination may work for you, I’ll cover some more specific examples of how to accomplish the main roles that make up the different flows.
+以上介紹的是常見的分散式系統可以應用的工作流程，當然不止於 Git。在實際的開發工作中，你可能會遇到各種為了滿足特定需求而有所變化的工作方式。我想現在你應該已經清楚，接下來自己需要用哪種方式開展工作了。下節我還會再舉些例子，看看各式工作流中的每個角色具體應該如何操作。
 
-## Contributing to a Project ##
+## 為專案作貢獻 ##
 
-You know what the different workflows are, and you should have a pretty good grasp of fundamental Git usage. In this section, you’ll learn about a few common patterns for contributing to a project.
+接下來，我們來學習一下作為專案貢獻者，會有哪些常見的工作模式。
 
-The main difficulty with describing this process is that there are a huge number of variations on how it’s done. Because Git is very flexible, people can and do work together many ways, and it’s problematic to describe how you should contribute to a project — every project is a bit different. Some of the variables involved are active contributor size, chosen workflow, your commit access, and possibly the external contribution method.
+不過要說清楚整個協作過程真的很難，Git 如此靈活，人們的協作方式便可以各式各樣，沒有固定不變的範式可循，而每個專案的具體情況又多少會有些不同，比如說參與者的規模，所選擇的工作流程，每個人的提交許可權，以及 Git 以外貢獻等等，都會影響到具體操作的細節。
 
-The first variable is active contributor size. How many users are actively contributing code to this project, and how often? In many instances, you’ll have two or three developers with a few commits a day, or possibly less for somewhat dormant projects. For really large companies or projects, the number of developers could be in the thousands, with dozens or even hundreds of patches coming in each day. This is important because with more and more developers, you run into more issues with making sure your code applies cleanly or can be easily merged. Changes you submit may be rendered obsolete or severely broken by work that is merged in while you were working or while your changes were waiting to be approved or applied. How can you keep your code consistently up to date and your patches valid?
+首當其衝的是參與者規模。專案中有多少開發者是經常提交代碼的？經常又是多久呢？大多數兩至三人的小團隊，一天大約只有幾次提交，如果不是什麼熱門項目的話就更少了。可要是在大公司裡，或者大項目中，參與者可以多到上千，每天都會有十幾個上百個補丁提交上來。這種差異帶來的影響是顯著的，越是多的人參與進來，就越難保證每次合併正確無誤。你正在工作的代碼，可能會因為合併進來其他人的更新而變得過時，甚至受創無法運行。而已經提交上去的更新，也可能在等著審核合併的過程中變得過時。那麼，我們該怎樣做才能確保代碼是最新的，提交的補丁也是可用的呢？
 
-The next variable is the workflow in use for the project. Is it centralized, with each developer having equal write access to the main codeline? Does the project have a maintainer or integration manager who checks all the patches? Are all the patches peer-reviewed and approved? Are you involved in that process? Is a lieutenant system in place, and do you have to submit your work to them first?
+接下來便是專案所採用的工作流。是集中式的，每個開發者都具有等同的寫許可權？專案是否有專人負責檢查所有補丁？是不是所有補丁都做過同行複閱（peer-review）再通過審核的？你是否參與審核過程？如果使用副官系統，那你是不是限定于只能向此副官提交？
 
-The next issue is your commit access. The workflow required in order to contribute to a project is much different if you have write access to the project than if you don’t. If you don’t have write access, how does the project prefer to accept contributed work? Does it even have a policy? How much work are you contributing at a time? How often do you contribute?
+還有你的提交許可權。有或沒有向主專案提交更新的許可權，結果完全不同，直接決定最終採用怎樣的工作流。如果不能直接提交更新，那該如何貢獻自己的代碼呢？是不是該有個什麼策略？你每次貢獻代碼會有多少量？提交頻率呢？
 
-All these questions can affect how you contribute effectively to a project and what workflows are preferred or available to you. I’ll cover aspects of each of these in a series of use cases, moving from simple to more complex; you should be able to construct the specific workflows you need in practice from these examples.
+所有以上這些問題都會或多或少影響到最終採用的工作流。接下來，我會在一系列由簡入繁的具體用例中，逐一闡述。此後在實踐時，應該可以借鑒這裡的例子，略作調整，以滿足實際需要構建自己的工作流。
 
-### Commit Guidelines ###
+### 提交指南 ###
 
-Before you start looking at the specific use cases, here’s a quick note about commit messages. Having a good guideline for creating commits and sticking to it makes working with Git and collaborating with others a lot easier. The Git project provides a document that lays out a number of good tips for creating commits from which to submit patches — you can read it in the Git source code in the `Documentation/SubmittingPatches` file.
+開始分析特定用例之前，先來瞭解下如何撰寫提交說明。一份好的提交指南可以説明協作者更輕鬆更有效地配合。Git 項目本身就提供了一份文檔（Git 專案原始程式碼目錄中 `Documentation/SubmittingPatches`），列數了大量提示，從如何編撰提交說明到提交補丁，不一而足。
 
-First, you don’t want to submit any whitespace errors. Git provides an easy way to check for this — before you commit, run `git diff --check`, which identifies possible whitespace errors and lists them for you. Here is an example, where I’ve replaced a red terminal color with `X`s:
+首先，請不要在更新中提交多餘的白字元（whitespace）。Git 有種檢查此類問題的方法，在提交之前，先運行 `git diff --check`，會把可能的多餘白字元修正列出來。下面的示例，我已經把終端中顯示為紅色的白字元用 `X` 替換掉：
 
 	$ git diff --check
 	lib/simplegit.rb:5: trailing whitespace.
@@ -80,63 +80,61 @@ First, you don’t want to submit any whitespace errors. Git provides an easy wa
 	lib/simplegit.rb:26: trailing whitespace.
 	+    def command(git_cmd)XXXX
 
-If you run that command before committing, you can tell if you’re about to commit whitespace issues that may annoy other developers.
+這樣在提交之前你就可以看到這類問題，及時解決以免困擾其他開發者。
 
-Next, try to make each commit a logically separate changeset. If you can, try to make your changes digestible — don’t code for a whole weekend on five different issues and then submit them all as one massive commit on Monday. Even if you don’t commit during the weekend, use the staging area on Monday to split your work into at least one commit per issue, with a useful message per commit. If some of the changes modify the same file, try to use `git add --patch` to partially stage files (covered in detail in Chapter 6). The project snapshot at the tip of the branch is identical whether you do one commit or five, as long as all the changes are added at some point, so try to make things easier on your fellow developers when they have to review your changes. This approach also makes it easier to pull out or revert one of the changesets if you need to later. Chapter 6 describes a number of useful Git tricks for rewriting history and interactively staging files — use these tools to help craft a clean and understandable history.
+接下來，請將每次提交限定於完成一次邏輯功能。並且可能的話，適當地分解為多次小更新，以便每次小型提交都更易於理解。請不要在週末窮追猛打一次性解決五個問題，而最後拖到週一再提交。就算是這樣也請盡可能利用暫存區域，將之前的改動分解為每次修復一個問題，再分別提交和加注說明。如果針對兩個問題改動的是同一個檔，可以試試看 `git add --patch` 的方式將部分內容置入暫存區域（我們會在第六章再詳細介紹）。無論是五次小提交還是混雜在一起的大提交，最終分支末端的專案快照應該還是一樣的，但分解開來之後，更便於其他開發者複閱。這麼做也方便自己將來取消某個特定問題的修復。我們將在第六章介紹一些重寫提交歷史，同暫存區域交互的技巧和工具，以便最終得到一個乾淨有意義，且易於理解的提交歷史。
 
-The last thing to keep in mind is the commit message. Getting in the habit of creating quality commit messages makes using and collaborating with Git a lot easier. As a general rule, your messages should start with a single line that’s no more than about 50 characters and that describes the changeset concisely, followed by a blank line, followed by a more detailed explanation. The Git project requires that the more detailed explanation include your motivation for the change and contrast its implementation with previous behavior — this is a good guideline to follow. It’s also a good idea to use the imperative present tense in these messages. In other words, use commands. Instead of "I added tests for" or "Adding tests for," use "Add tests for."
-Here is a template originally written by Tim Pope at tpope.net:
+最後需要謹記的是提交說明的撰寫。寫得好可以讓大家協作起來更輕鬆。一般來說，提交說明最好限制在一行以內，50 個字元以下，簡明扼要地描述更新內容，空開一行後，再展開詳細注解。Git 專案本身需要開發者撰寫詳盡注解，包括本次修訂的因由，以及前後不同實現之間的比較，我們也該借鑒這種做法。另外，提交說明應該用祈使現在式語態，比如，不要說成 “I added tests for” 或 “Adding tests for” 而應該用 “Add tests for”。
+下面是來自 tpope.net 的 Tim Pope 原創的提交說明格式模版，供參考：
 
-	Short (50 chars or less) summary of changes
+	本次更新的簡要描述（50 個字元以內）
 
-	More detailed explanatory text, if necessary.  Wrap it to about 72
-	characters or so.  In some contexts, the first line is treated as the
-	subject of an email and the rest of the text as the body.  The blank
-	line separating the summary from the body is critical (unless you omit
-	the body entirely); tools like rebase can get confused if you run the
-	two together.
+	如果必要，此處展開詳盡闡述。段落寬度限定在 72 個字元以內。
+	某些情況下，第一行的簡要描述將用作郵件標題，其餘部分作為郵件正文。
+	其間的空行是必要的，以區分兩者（當然沒有正文另當別論）。
+	如果並在一起，rebase 這樣的工具就可能會迷惑。
 
-	Further paragraphs come after blank lines.
+	另起空行後，再進一步補充其他說明。
 
-	 - Bullet points are okay, too
+	 - 可以使用這樣的條目列舉式。
 
-	 - Typically a hyphen or asterisk is used for the bullet, preceded by a
-	   single space, with blank lines in between, but conventions vary here
+	 - 一般以單個空格緊跟短劃線或者星號作為每項條目的起始符。每個條目間用一空行隔開。
+	   不過這裡按自己項目的約定，可以略作變化。
 
-If all your commit messages look like this, things will be a lot easier for you and the developers you work with. The Git project has well-formatted commit messages — I encourage you to run `git log --no-merges` there to see what a nicely formatted project-commit history looks like.
+如果你的提交說明都用這樣的格式來書寫，好多事情就可以變得十分簡單。Git 專案本身就是這樣要求的，我強烈建議你到 Git 專案倉庫下運行 `git log --no-merges` 看看，所有提交歷史的說明是怎樣撰寫的。（譯注：如果現在還沒有克隆 git 項目原始程式碼，是時候 `git clone git://git.kernel.org/pub/scm/git/git.git` 了。）
 
-In the following examples, and throughout most of this book, for the sake of brevity I don’t format messages nicely like this; instead, I use the `-m` option to `git commit`. Do as I say, not as I do.
+為簡單起見，在接下來的例子（及本書隨後的所有演示）中，我都不會用這種格式，而使用 `-m` 選項提交 `git commit`。不過請還是按照我之前講的做，別學我這裡偷懶的方式。
 
-### Private Small Team ###
+### 私有的小型團隊 ###
 
-The simplest setup you’re likely to encounter is a private project with one or two other developers. By private, I mean closed source — not read-accessible to the outside world. You and the other developers all have push access to the repository.
+我們從最簡單的情況開始，一個私有專案，與你一起協作的還有另外一到兩位開發者。這裡說私有，是指原始程式碼不公開，其他人無法訪問項目倉庫。而你和其他開發者則都具有推送資料到倉庫的許可權。
 
-In this environment, you can follow a workflow similar to what you might do when using Subversion or another centralized system. You still get the advantages of things like offline committing and vastly simpler branching and merging, but the workflow can be very similar; the main difference is that merges happen client-side rather than on the server at commit time.
-Let’s see what it might look like when two developers start to work together with a shared repository. The first developer, John, clones the repository, makes a change, and commits locally. (I’m replacing the protocol messages with `...` in these examples to shorten them somewhat.)
+這種情況下，你們可以用 Subversion 或其他集中式版本控制系統類似的工作流來協作。你仍然可以得到 Git 帶來的其他好處：離線提交，快速分支與合併等等，但工作流程還是差不多的。主要區別在於，合併操作發生在用戶端而非伺服器上。
+讓我們來看看，兩個開發者一起使用同一個共用倉庫，會發生些什麼。第一個人，John，克隆了倉庫，作了些更新，在本地提交。（下面的例子中省略了常規提示，用 `...` 代替以節約版面。）
 
 	# John's Machine
 	$ git clone john@githost:simplegit.git
 	Initialized empty Git repository in /home/john/simplegit/.git/
 	...
 	$ cd simplegit/
-	$ vim lib/simplegit.rb 
+	$ vim lib/simplegit.rb
 	$ git commit -am 'removed invalid default value'
 	[master 738ee87] removed invalid default value
 	 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The second developer, Jessica, does the same thing — clones the repository and commits a change:
+第二個開發者，Jessica，一樣這麼做：克隆倉庫，提交更新：
 
 	# Jessica's Machine
 	$ git clone jessica@githost:simplegit.git
 	Initialized empty Git repository in /home/jessica/simplegit/.git/
 	...
 	$ cd simplegit/
-	$ vim TODO 
+	$ vim TODO
 	$ git commit -am 'add reset task'
 	[master fbff5bc] add reset task
 	 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Now, Jessica pushes her work up to the server:
+現在，Jessica 將她的工作推送到伺服器上：
 
 	# Jessica's Machine
 	$ git push origin master
@@ -144,7 +142,7 @@ Now, Jessica pushes her work up to the server:
 	To jessica@githost:simplegit.git
 	   1edee6b..fbff5bc  master -> master
 
-John tries to push his change up, too:
+John 也嘗試推送自己的工作上去：
 
 	# John's Machine
 	$ git push origin master
@@ -152,48 +150,48 @@ John tries to push his change up, too:
 	 ! [rejected]        master -> master (non-fast forward)
 	error: failed to push some refs to 'john@githost:simplegit.git'
 
-John isn’t allowed to push because Jessica has pushed in the meantime. This is especially important to understand if you’re used to Subversion, because you’ll notice that the two developers didn’t edit the same file. Although Subversion automatically does such a merge on the server if different files are edited, in Git you must merge the commits locally. John has to fetch Jessica’s changes and merge them in before he will be allowed to push:
+John 的推送操作被駁回，因為 Jessica 已經推送了新的資料上去。請注意，特別是你用慣了 Subversion 的話，這裡其實修改的是兩個檔，而不是同一個檔的同一個地方。Subversion 會在伺服器端自動合併提交上來的更新，而 Git 則必須先在本地合併後才能推送。於是，John 不得不先把 Jessica 的更新拉下來：
 
 	$ git fetch origin
 	...
 	From john@githost:simplegit
 	 + 049d078...fbff5bc master     -> origin/master
 
-At this point, John’s local repository looks something like Figure 5-4.
+此刻，John 的本地倉庫如圖 5-4 所示：
 
-Insert 18333fig0504.png 
-Figure 5-4. John’s initial repository.
+Insert 18333fig0504.png
+圖 5-4. John 的倉庫歷史
 
-John has a reference to the changes Jessica pushed up, but he has to merge them into his own work before he is allowed to push:
+雖然 John 下載了 Jessica 推送到伺服器的最近更新（fbff5），但目前只是 `origin/master` 指標指向它，而當前的本地分支 `master` 仍然指向自己的更新（738ee），所以需要先把她的提交合併過來，才能繼續推送資料：
 
 	$ git merge origin/master
 	Merge made by recursive.
 	 TODO |    1 +
 	 1 files changed, 1 insertions(+), 0 deletions(-)
 
-The merge goes smoothly — John’s commit history now looks like Figure 5-5.
+還好，合併過程非常順利，沒有衝突，現在 John 的提交歷史如圖 5-5 所示：
 
-Insert 18333fig0505.png 
-Figure 5-5. John’s repository after merging origin/master.
+Insert 18333fig0505.png
+圖 5-5. 合併 origin/master 後 John 的倉庫歷史
 
-Now, John can test his code to make sure it still works properly, and then he can push his new merged work up to the server:
+現在，John 應該再測試一下代碼是否仍然正常工作，然後將合併結果（72bbc）推送到伺服器上：
 
 	$ git push origin master
 	...
 	To john@githost:simplegit.git
 	   fbff5bc..72bbc59  master -> master
 
-Finally, John’s commit history looks like Figure 5-6.
+最終，John 的提交歷史變為圖 5-6 所示：
 
-Insert 18333fig0506.png 
-Figure 5-6. John’s history after pushing to the origin server.
+Insert 18333fig0506.png
+圖 5-6. 推送後 John 的倉庫歷史
 
-In the meantime, Jessica has been working on a topic branch. She’s created a topic branch called `issue54` and done three commits on that branch. She hasn’t fetched John’s changes yet, so her commit history looks like Figure 5-7.
+而在這段時間，Jessica 已經開始在另一個特性分支工作了。她創建了 `issue54` 並提交了三次更新。她還沒有下載 John 提交的合併結果，所以提交歷史如圖 5-7 所示：
 
-Insert 18333fig0507.png 
-Figure 5-7. Jessica’s initial commit history.
+Insert 18333fig0507.png
+圖 5-7. Jessica 的提交歷史
 
-Jessica wants to sync up with John, so she fetches:
+Jessica 想要先和伺服器上的資料同步，所以先下載資料：
 
 	# Jessica's Machine
 	$ git fetch origin
@@ -201,12 +199,12 @@ Jessica wants to sync up with John, so she fetches:
 	From jessica@githost:simplegit
 	   fbff5bc..72bbc59  master     -> origin/master
 
-That pulls down the work John has pushed up in the meantime. Jessica’s history now looks like Figure 5-8.
+於是 Jessica 的本地倉庫歷史多出了 John 的兩次提交（738ee 和 72bbc），如圖 5-8 所示：
 
-Insert 18333fig0508.png 
-Figure 5-8. Jessica’s history after fetching John’s changes.
+Insert 18333fig0508.png
+圖 5-8. 獲取 John 的更新之後 Jessica 的提交歷史
 
-Jessica thinks her topic branch is ready, but she wants to know what she has to merge her work into so that she can push. She runs `git log` to find out:
+此時，Jessica 在特性分支上的工作已經完成，但她想在推送資料之前，先確認下要並進來的資料究竟是什麼，於是運行 `git log` 查看：
 
 	$ git log --no-merges origin/master ^issue54
 	commit 738ee872852dfaa9d6634e0dea7a324040193016
@@ -215,13 +213,13 @@ Jessica thinks her topic branch is ready, but she wants to know what she has to 
 
 	    removed invalid default value
 
-Now, Jessica can merge her topic work into her master branch, merge John’s work (`origin/master`) into her `master` branch, and then push back to the server again. First, she switches back to her master branch to integrate all this work:
+現在，Jessica 可以將特性分支上的工作並到 `master` 分支，然後再併入 John 的工作（`origin/master`）到自己的 `master` 分支，最後再推送回伺服器。當然，得先切回主分支才能集成所有資料：
 
 	$ git checkout master
 	Switched to branch "master"
 	Your branch is behind 'origin/master' by 2 commits, and can be fast-forwarded.
 
-She can merge either `origin/master` or `issue54` first — they’re both upstream, so the order doesn’t matter. The end snapshot should be identical no matter which order she chooses; only the history will be slightly different. She chooses to merge in `issue54` first:
+要合併 `origin/master` 或 `issue54` 分支，誰先誰後都沒有關係，因為它們都在上游（upstream）（譯注：想像分叉的更新像是匯流成河的源頭，所以上游 upstream 是指最新的提交），所以無所謂先後順序，最終合併後的內容快照都是一樣的，而僅是提交歷史看起來會有些先後差別。Jessica 選擇先合併 `issue54`：
 
 	$ git merge issue54
 	Updating fbff5bc..4af4298
@@ -230,7 +228,7 @@ She can merge either `origin/master` or `issue54` first — they’re both upstr
 	 lib/simplegit.rb |    6 +++++-
 	 2 files changed, 6 insertions(+), 1 deletions(-)
 
-No problems occur; as you can see it, was a simple fast-forward. Now Jessica merges in John’s work (`origin/master`):
+正如所見，沒有衝突發生，僅是一次簡單快進。現在 Jessica 開始合併 John 的工作（`origin/master`）：
 
 	$ git merge origin/master
 	Auto-merging lib/simplegit.rb
@@ -238,35 +236,35 @@ No problems occur; as you can see it, was a simple fast-forward. Now Jessica mer
 	 lib/simplegit.rb |    2 +-
 	 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Everything merges cleanly, and Jessica’s history looks like Figure 5-9.
+所有的合併都非常乾淨。現在 Jessica 的提交歷史如圖 5-9 所示：
 
-Insert 18333fig0509.png 
-Figure 5-9. Jessica’s history after merging John’s changes.
+Insert 18333fig0509.png
+圖 5-9. 合併 John 的更新後 Jessica 的提交歷史
 
-Now `origin/master` is reachable from Jessica’s `master` branch, so she should be able to successfully push (assuming John hasn’t pushed again in the meantime):
+現在 Jessica 已經可以在自己的 `master` 分支中訪問 `origin/master` 的最新改動了，所以她應該可以成功推送最後的合併結果到伺服器上（假設 John 此時沒再推送新資料上來）：
 
 	$ git push origin master
 	...
 	To jessica@githost:simplegit.git
 	   72bbc59..8059c15  master -> master
 
-Each developer has committed a few times and merged each other’s work successfully; see Figure 5-10.
+至此，每個開發者都提交了若干次，且成功合併了對方的工作成果，最新的提交歷史如圖 5-10 所示：
 
-Insert 18333fig0510.png 
-Figure 5-10. Jessica’s history after pushing all changes back to the server.
+Insert 18333fig0510.png
+圖 5-10. Jessica 推送資料後的提交歷史
 
-That is one of the simplest workflows. You work for a while, generally in a topic branch, and merge into your master branch when it’s ready to be integrated. When you want to share that work, you merge it into your own master branch, then fetch and merge `origin/master` if it has changed, and finally push to the `master` branch on the server. The general sequence is something like that shown in Figure 5-11.
+以上就是最簡單的協作方式之一：先在自己的特性分支中工作一段時間，完成後合併到自己的 `master` 分支；然後下載合併 `origin/master` 上的更新（如果有的話），再推回遠端伺服器。一般的協作流程如圖 5-11 所示：
 
-Insert 18333fig0511.png 
-Figure 5-11. General sequence of events for a simple multiple-developer Git workflow.
+Insert 18333fig0511.png
+圖 5-11. 多使用者共用倉庫協作方式的一般工作流程時序
 
-### Private Managed Team ###
+### 私有團隊間協作 ###
 
-In this next scenario, you’ll look at contributor roles in a larger private group. You’ll learn how to work in an environment where small groups collaborate on features and then those team-based contributions are integrated by another party.
+現在我們來看更大一點規模的私有團隊協作。如果有幾個小組分頭負責若干特性的開發和集成，那他們之間的協作過程是怎樣的。
 
-Let’s say that John and Jessica are working together on one feature, while Jessica and Josie are working on a second. In this case, the company is using a type of integration-manager workflow where the work of the individual groups is integrated only by certain engineers, and the `master` branch of the main repo can be updated only by those engineers. In this scenario, all work is done in team-based branches and pulled together by the integrators later.
+假設 John 和 Jessica 一起負責開發某項特性 A，而同時 Jessica 和 Josie 一起負責開發另一項功能 B。公司使用典型的集成管理員式工作流，每個組都有一名管理員負責集成本組代碼，及更新專案主倉庫的 `master` 分支。所有開發都在代表小組的分支上進行。
 
-Let’s follow Jessica’s workflow as she works on her two features, collaborating in parallel with two different developers in this environment. Assuming she already has her repository cloned, she decides to work on `featureA` first. She creates a new branch for the feature and does some work on it there:
+讓我們跟隨 Jessica 的視角看看她的工作流程。她參與開發兩項特性，同時和不同小組的開發者一起協作。克隆生成本地倉庫後，她打算先著手開發特性 A。於是創建了新的 `featureA` 分支，繼而編寫代碼：
 
 	# Jessica's Machine
 	$ git checkout -b featureA
@@ -276,21 +274,21 @@ Let’s follow Jessica’s workflow as she works on her two features, collaborat
 	[featureA 3300904] add limit to log function
 	 1 files changed, 1 insertions(+), 1 deletions(-)
 
-At this point, she needs to share her work with John, so she pushes her `featureA` branch commits up to the server. Jessica doesn’t have push access to the `master` branch — only the integrators do — so she has to push to another branch in order to collaborate with John:
+此刻，她需要分享目前的進展給 John，於是她將自己的 `featureA` 分支提交到伺服器。由於 Jessica 沒有許可權推送資料到主倉庫的 `master` 分支（只有集成管理員有此許可權），所以只能將此分支推上去同 John 共用協作：
 
 	$ git push origin featureA
 	...
 	To jessica@githost:simplegit.git
 	 * [new branch]      featureA -> featureA
 
-Jessica e-mails John to tell him that she’s pushed some work into a branch named `featureA` and he can look at it now. While she waits for feedback from John, Jessica decides to start working on `featureB` with Josie. To begin, she starts a new feature branch, basing it off the server’s `master` branch:
+Jessica 發郵件給 John 讓他上來看看 `featureA` 分支上的進展。在等待他的回饋之前，Jessica 決定繼續工作，和 Josie 一起開發 `featureB` 上的特性 B。當然，先創建此分支，分叉點以伺服器上的 `master` 為起點：
 
 	# Jessica's Machine
 	$ git fetch origin
 	$ git checkout -b featureB origin/master
 	Switched to a new branch "featureB"
 
-Now, Jessica makes a couple of commits on the `featureB` branch:
+隨後，Jessica 在 `featureB` 上提交了若干更新：
 
 	$ vim lib/simplegit.rb
 	$ git commit -am 'made the ls-tree function recursive'
@@ -301,19 +299,19 @@ Now, Jessica makes a couple of commits on the `featureB` branch:
 	[featureB 8512791] add ls-files
 	 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Jessica’s repository looks like Figure 5-12.
+現在 Jessica 的更新歷史如圖 5-12 所示：
 
-Insert 18333fig0512.png 
-Figure 5-12. Jessica’s initial commit history.
+Insert 18333fig0512.png
+圖 5-12. Jessica 的更新歷史
 
-She’s ready to push up her work, but gets an e-mail from Josie that a branch with some initial work on it was already pushed to the server as `featureBee`. Jessica first needs to merge those changes in with her own before she can push to the server. She can then fetch Josie’s changes down with `git fetch`:
+Jessica 正準備推送自己的進展上去，卻收到 Josie 的來信，說是她已經將自己的工作推到伺服器上的 `featureBee` 分支了。這樣，Jessica 就必須先將 Josie 的代碼合併到自己本地分支中，才能再一起推送回伺服器。她用 `git fetch` 下載 Josie 的最新代碼：
 
 	$ git fetch origin
 	...
 	From jessica@githost:simplegit
 	 * [new branch]      featureBee -> origin/featureBee
 
-Jessica can now merge this into the work she did with `git merge`:
+然後 Jessica 使用 `git merge` 將此分支合併到自己分支中：
 
 	$ git merge origin/featureBee
 	Auto-merging lib/simplegit.rb
@@ -321,23 +319,23 @@ Jessica can now merge this into the work she did with `git merge`:
 	 lib/simplegit.rb |    4 ++++
 	 1 files changed, 4 insertions(+), 0 deletions(-)
 
-There is a bit of a problem — she needs to push the merged work in her `featureB` branch to the `featureBee` branch on the server. She can do so by specifying the local branch followed by a colon (:) followed by the remote branch to the `git push` command:
+合併很順利，但另外有個小問題：她要推送自己的 `featureB` 分支到伺服器上的 `featureBee` 分支上去。當然，她可以使用冒號（:）格式指定目標分支：
 
 	$ git push origin featureB:featureBee
 	...
 	To jessica@githost:simplegit.git
 	   fba9af8..cd685d1  featureB -> featureBee
 
-This is called a _refspec_. See Chapter 9 for a more detailed discussion of Git refspecs and different things you can do with them.
+我們稱此為_refspec_。更多有關於 Git refspec 的討論和使用方式會在第九章作詳細闡述。
 
-Next, John e-mails Jessica to say he’s pushed some changes to the `featureA` branch and ask her to verify them. She runs a `git fetch` to pull down those changes:
+接下來，John 發郵件給 Jessica 告訴她，他看了之後作了些修改，已經推回伺服器 `featureA` 分支，請她過目下。於是 Jessica 運行 `git fetch` 下載最新資料：
 
 	$ git fetch origin
 	...
 	From jessica@githost:simplegit
 	   3300904..aad881d  featureA   -> origin/featureA
 
-Then, she can see what has been changed with `git log`:
+接下來便可以用 `git log` 查看更新了些什麼：
 
 	$ git log origin/featureA ^featureA
 	commit aad881d154acdaeb2b6b18ea0e827ed8a6d671e6
@@ -346,7 +344,7 @@ Then, she can see what has been changed with `git log`:
 
 	    changed log output to 30 from 25
 
-Finally, she merges John’s work into her own `featureA` branch:
+最後，她將 John 的工作合併到自己的 `featureA` 分支中：
 
 	$ git checkout featureA
 	Switched to branch "featureA"
@@ -356,36 +354,36 @@ Finally, she merges John’s work into her own `featureA` branch:
 	 lib/simplegit.rb |   10 +++++++++-
 	1 files changed, 9 insertions(+), 1 deletions(-)
 
-Jessica wants to tweak something, so she commits again and then pushes this back up to the server:
+Jessica 稍做一番修整後同步到伺服器：
 
 	$ git commit -am 'small tweak'
-	[featureA ed774b3] small tweak
+	[featureA 774b3ed] small tweak
 	 1 files changed, 1 insertions(+), 1 deletions(-)
 	$ git push origin featureA
 	...
 	To jessica@githost:simplegit.git
-	   3300904..ed774b3  featureA -> featureA
+	   3300904..774b3ed  featureA -> featureA
 
-Jessica’s commit history now looks something like Figure 5-13.
+現在的 Jessica 提交歷史如圖 5-13 所示：
 
-Insert 18333fig0513.png 
-Figure 5-13. Jessica’s history after committing on a feature branch.
+Insert 18333fig0513.png
+圖 5-13. 在特性分支中提交更新後的提交歷史
 
-Jessica, Josie, and John inform the integrators that the `featureA` and `featureBee` branches on the server are ready for integration into the mainline. After they integrate these branches into the mainline, a fetch will bring down the new merge commits, making the commit history look like Figure 5-14.
+現在，Jessica，Josie 和 John 通知集成管理員伺服器上的 `featureA` 及 `featureBee` 分支已經準備好，可以併入主線了。在管理員完成集成工作後，主分支上便多出一個新的合併提交（5399e），用 fetch 命令更新到本地後，提交歷史如圖 5-14 所示：
 
-Insert 18333fig0514.png 
-Figure 5-14. Jessica’s history after merging both her topic branches.
+Insert 18333fig0514.png
+圖 5-14. 合併特性分支後的 Jessica 提交歷史
 
-Many groups switch to Git because of this ability to have multiple teams working in parallel, merging the different lines of work late in the process. The ability of smaller subgroups of a team to collaborate via remote branches without necessarily having to involve or impede the entire team is a huge benefit of Git. The sequence for the workflow you saw here is something like Figure 5-15.
+許多開發小組改用 Git 就是因為它允許多個小組間並行工作，而在稍後恰當時機再行合併。通過共用遠端分支的方式，無需干擾整體專案代碼便可以開展工作，因此使用 Git 的小型團隊間協作可以變得非常靈活自由。以上工作流程的時序如圖 5-15 所示：
 
-Insert 18333fig0515.png 
-Figure 5-15. Basic sequence of this managed-team workflow.
+Insert 18333fig0515.png
+圖 5-15. 團隊間協作工作流程基本時序
 
-### Public Small Project ###
+### 公開的小型專案 ###
 
-Contributing to public projects is a bit different. Because you don’t have the permissions to directly update branches on the project, you have to get the work to the maintainers some other way. This first example describes contributing via forking on Git hosts that support easy forking. The repo.or.cz and GitHub hosting sites both support this, and many project maintainers expect this style of contribution. The next section deals with projects that prefer to accept contributed patches via e-mail.
+上面說的是私有專案協作，但要給公開專案作貢獻，情況就有些不同了。因為你沒有直接更新主倉庫分支的許可權，得尋求其它方式把工作成果交給專案維護人。下面會介紹兩種方法，第一種使用 git 託管服務商提供的倉庫複製功能，一般稱作 fork，比如 repo.or.cz 和 GitHub 都支援這樣的操作，而且許多項目管理員都希望大家使用這樣的方式。另一種方法是通過電子郵件寄送檔補丁。
 
-First, you’ll probably want to clone the main repository, create a topic branch for the patch or patch series you’re planning to contribute, and do your work there. The sequence looks basically like this:
+但不管哪種方式，起先我們總需要克隆原始倉庫，而後創建特性分支開展工作。基本工作流程如下：
 
 	$ git clone (url)
 	$ cd project
@@ -395,19 +393,19 @@ First, you’ll probably want to clone the main repository, create a topic branc
 	$ (work)
 	$ git commit
 
-You may want to use `rebase -i` to squash your work down to a single commit, or rearrange the work in the commits to make the patch easier for the maintainer to review — see Chapter 6 for more information about interactive rebasing.
+你可能想到用 `rebase -i` 將所有更新先變作單個提交，又或者想重新安排提交之間的差異補丁，以方便專案維護者審閱 -- 有關互動式衍合操作的細節見第六章。
 
-When your branch work is finished and you’re ready to contribute it back to the maintainers, go to the original project page and click the "Fork" button, creating your own writable fork of the project. You then need to add in this new repository URL as a second remote, in this case named `myfork`:
+在完成了特性分支開發，提交給專案維護者之前，先到原始專案的頁面上點擊“Fork”按鈕，創建一個自己可寫的公共倉庫（譯注：即下面的 url 部分，參照後續的例子，應該是 `git://githost/simplegit.git`）。然後將此倉庫添加為本地的第二個遠端倉庫，姑且稱為 `myfork`：
 
 	$ git remote add myfork (url)
 
-You need to push your work up to it. It’s easiest to push the remote branch you’re working on up to your repository, rather than merging into your master branch and pushing that up. The reason is that if the work isn’t accepted or is cherry picked, you don’t have to rewind your master branch. If the maintainers merge, rebase, or cherry-pick your work, you’ll eventually get it back via pulling from their repository anyhow:
+你需要將本地更新推送到這個倉庫。要是將遠端 master 合併到本地再推回去，還不如把整個特性分支推上去來得乾脆直接。而且，假若項目維護者未採納你的貢獻的話（不管是直接合併還是 cherry pick），都不用回退（rewind）自己的 master 分支。但若維護者合併或 cherry-pick 了你的工作，最後總還可以從他們的更新中同步這些代碼。好吧，現在先把 featureA 分支整個推上去：
 
 	$ git push myfork featureA
 
-When your work has been pushed up to your fork, you need to notify the maintainer. This is often called a pull request, and you can either generate it via the website — GitHub has a "pull request" button that automatically messages the maintainer — or run the `git request-pull` command and e-mail the output to the project maintainer manually.
+然後通知專案管理員，讓他來抓取你的代碼。通常我們把這件事叫做 pull request。可以直接用 GitHub 等網站提供的 “pull request” 按鈕自動發送請求通知；或手工把 `git request-pull` 命令輸出結果電郵給專案管理員。
 
-The `request-pull` command takes the base branch into which you want your topic branch pulled and the Git repository URL you want them to pull from, and outputs a summary of all the changes you’re asking to be pulled in. For instance, if Jessica wants to send John a pull request, and she’s done two commits on the topic branch she just pushed up, she can run this:
+`request-pull` 命令接受兩個參數，第一個是本地特性分支開始前的原始分支，第二個是請求對方來抓取的 Git 倉庫 URL（譯注：即下面 `myfork` 所指的，自己可寫的公共倉庫）。比如現在Jessica 準備要給 John 發一個 pull requst，她之前在自己的特性分支上提交了兩次更新，並把分支整個推到了伺服器上，所以運行該命令會看到：
 
 	$ git request-pull origin/master myfork
 	The following changes since commit 1edee6b1d61823a2de3b09c160d7080b8d1b3a40:
@@ -425,9 +423,9 @@ The `request-pull` command takes the base branch into which you want your topic 
 	 lib/simplegit.rb |   10 +++++++++-
 	 1 files changed, 9 insertions(+), 1 deletions(-)
 
-The output can be sent to the maintainer—it tells them where the work was branched from, summarizes the commits, and tells where to pull this work from.
+輸出的內容可以直接發郵件給管理者，他們就會明白這是從哪次提交開始旁支出去的，該到哪裡去抓取新的代碼，以及新的代碼增加了哪些功能等等。
 
-On a project for which you’re not the maintainer, it’s generally easier to have a branch like `master` always track `origin/master` and to do your work in topic branches that you can easily discard if they’re rejected.  Having work themes isolated into topic branches also makes it easier for you to rebase your work if the tip of the main repository has moved in the meantime and your commits no longer apply cleanly. For example, if you want to submit a second topic of work to the project, don’t continue working on the topic branch you just pushed up — start over from the main repository’s `master` branch:
+像這樣隨時保持自己的 `master` 分支和官方 `origin/master` 同步，並將自己的工作限制在特性分支上的做法，既方便又靈活，採納和丟棄都輕而易舉。就算原始主幹發生變化，我們也能重新衍合提供新的補丁。比如現在要開始第二項特性的開發，不要在原來已推送的特性分支上繼續，還是按原始 `master` 開始：
 
 	$ git checkout -b featureB origin/master
 	$ (work)
@@ -436,25 +434,25 @@ On a project for which you’re not the maintainer, it’s generally easier to h
 	$ (email maintainer)
 	$ git fetch origin
 
-Now, each of your topics is contained within a silo — similar to a patch queue — that you can rewrite, rebase, and modify without the topics interfering or interdepending on each other as in Figure 5-16.
+現在，A、B 兩個特性分支各不相擾，如同竹筒裡的兩顆豆子，佇列中的兩個補丁，你隨時都可以分別從頭寫過，或者衍合，或者修改，而不用擔心特性代碼的交叉混雜。如圖 5-16 所示：
 
-Insert 18333fig0516.png 
-Figure 5-16. Initial commit history with featureB work.
+Insert 18333fig0516.png
+圖 5-16. featureB 以後的提交歷史
 
-Let’s say the project maintainer has pulled in a bunch of other patches and tried your first branch, but it no longer cleanly merges. In this case, you can try to rebase that branch on top of `origin/master`, resolve the conflicts for the maintainer, and then resubmit your changes:
+假設項目管理員接納了許多別人提交的補丁後，準備要採納你提交的第一個分支，卻發現因為代碼基準不一致，合併工作無法正確乾淨地完成。這就需要你再次衍合到最新的 `origin/master`，解決相關衝突，然後重新提交你的修改：
 
 	$ git checkout featureA
 	$ git rebase origin/master
-	$ git push –f myfork featureA
+	$ git push -f myfork featureA
 
-This rewrites your history to now look like Figure 5-17.
+自然，這會重寫提交歷史，如圖 5-17 所示：
 
-Insert 18333fig0517.png 
-Figure 5-17. Commit history after featureA work.
+Insert 18333fig0517.png
+圖 5-17. featureA 重新衍合後的提交歷史
 
-Because you rebased the branch, you have to specify the `–f` to your push command in order to be able to replace the `featureA` branch on the server with a commit that isn’t a descendant of it. An alternative would be to push this new work to a different branch on the server (perhaps called `featureAv2`).
+注意，此時推送分支必須使用 `-f` 選項（譯注：表示 force，不作檢查強制重寫）替換遠端已有的 `featureA` 分支，因為新的 commit 並非原來的後續更新。當然你也可以直接推送到另一個新的分支上去，比如稱作 `featureAv2`。
 
-Let’s look at one more possible scenario: the maintainer has looked at work in your second branch and likes the concept but would like you to change an implementation detail. You’ll also take this opportunity to move the work to be based off the project’s current `master` branch. You start a new branch based off the current `origin/master` branch, squash the `featureB` changes there, resolve any conflicts, make the implementation change, and then push that up as a new branch:
+再考慮另一種情形：管理員看過第二個分支後覺得思路新穎，但想請你改下具體實現。我們只需以當前 `origin/master` 分支為基準，開始一個新的特性分支 `featureBv2`，然後把原來的 `featureB` 的更新拿過來，解決衝突，按要求重新實現部分代碼，然後將此特性分支推送上去：
 
 	$ git checkout -b featureBv2 origin/master
 	$ git merge --no-commit --squash featureB
@@ -462,18 +460,18 @@ Let’s look at one more possible scenario: the maintainer has looked at work in
 	$ git commit
 	$ git push myfork featureBv2
 
-The `--squash` option takes all the work on the merged branch and squashes it into one non-merge commit on top of the branch you’re on. The `--no-commit` option tells Git not to automatically record a commit. This allows you to introduce all the changes from another branch and then make more changes before recording the new commit.
+這裡的 `--squash` 選項將目標分支上的所有更改全拿來應用到當前分支上，而 `--no-commit` 選項告訴 Git 此時無需自動生成和記錄（合併）提交。這樣，你就可以在原來代碼基礎上，繼續工作，直到最後一起提交。
 
-Now you can send the maintainer a message that you’ve made the requested changes and they can find those changes in your `featureBv2` branch (see Figure 5-18).
+好了，現在可以請管理員抓取 `featureBv2` 上的最新代碼了，如圖 5-18 所示：
 
-Insert 18333fig0518.png 
-Figure 5-18. Commit history after featureBv2 work.
+Insert 18333fig0518.png
+圖 5-18. featureBv2 之後的提交歷史
 
-### Public Large Project ###
+### 公開的大型專案 ###
 
-Many larger projects have established procedures for accepting patches — you’ll need to check the specific rules for each project, because they will differ. However, many larger public projects accept patches via a developer mailing list, so I’ll go over an example of that now.
+許多大型專案都會立有一套自己的接受補丁流程，你應該注意下其中細節。但多數專案都允許通過開發者郵寄清單接受補丁，現在我們來看具體例子。
 
-The workflow is similar to the previous use case — you create topic branches for each patch series you work on. The difference is how you submit them to the project. Instead of forking the project and pushing to your own writable version, you generate e-mail versions of each commit series and e-mail them to the developer mailing list:
+整個工作流程類似上面的情形：為每個補丁創建獨立的特性分支，而不同之處在於如何提交這些補丁。不需要創建自己可寫的公共倉庫，也不用將自己的更新推送到自己的伺服器，你只需將每次提交的差異內容以電子郵件的方式依次發送到郵寄清單中即可。
 
 	$ git checkout -b topicA
 	$ (work)
@@ -481,15 +479,15 @@ The workflow is similar to the previous use case — you create topic branches f
 	$ (work)
 	$ git commit
 
-Now you have two commits that you want to send to the mailing list. You use `git format-patch` to generate the mbox-formatted files that you can e-mail to the list — it turns each commit into an e-mail message with the first line of the commit message as the subject and the rest of the message plus the patch that the commit introduces as the body. The nice thing about this is that applying a patch from an e-mail generated with `format-patch` preserves all the commit information properly, as you’ll see more of in the next section when you apply these commits:
+如此一番後，有了兩個提交要發到郵寄清單。我們可以用 `git format-patch` 命令來生成 mbox 格式的檔然後作為附件發送。每個提交都會封裝為一個 `.patch` 尾碼的 mbox 檔，但其中只包含一封郵件，郵件標題就是提交消息（譯注：額外有首碼，看例子），郵件內容包含補丁正文和 Git 版本號。這種方式的妙處在於接受補丁時仍可保留原來的提交消息，請看接下來的例子：
 
 	$ git format-patch -M origin/master
 	0001-add-limit-to-log-function.patch
 	0002-changed-log-output-to-30-from-25.patch
 
-The `format-patch` command prints out the names of the patch files it creates. The `-M` switch tells Git to look for renames. The files end up looking like this:
+`format-patch` 命令依次創建補丁文件，並輸出檔案名。上面的 `-M` 選項允許 Git 檢查是否有對檔重命名的提交。我們來看看補丁檔的內容：
 
-	$ cat 0001-add-limit-to-log-function.patch 
+	$ cat 0001-add-limit-to-log-function.patch
 	From 330090432754092d704da8e76ca5c05c198e71a8 Mon Sep 17 00:00:00 2001
 	From: Jessica Smith <jessica@example.com>
 	Date: Sun, 6 Apr 2008 10:17:23 -0700
@@ -514,14 +512,14 @@ The `format-patch` command prints out the names of the patch files it creates. T
 	   end
 
 	   def ls_tree(treeish = 'master')
-	-- 
+	--
 	1.6.2.rc1.20.g8c5b.dirty
 
-You can also edit these patch files to add more information for the e-mail list that you don’t want to show up in the commit message. If you add text between the `--` line and the beginning of the patch (the `lib/simplegit.rb` line), then developers can read it; but applying the patch excludes it.
+如果有額外資訊需要補充，但又不想放在提交消息中說明，可以編輯這些補丁檔，在第一個 `---` 行之前添加說明，但不要修改下面的補丁正文，比如例子中的 `Limit log functionality to the first 20` 部分。這樣，其它開發者能閱讀，但在採納補丁時不會將此合併進來。
 
-To e-mail this to a mailing list, you can either paste the file into your e-mail program or send it via a command-line program. Pasting the text often causes formatting issues, especially with "smarter" clients that don’t preserve newlines and other whitespace appropriately. Luckily, Git provides a tool to help you send properly formatted patches via IMAP, which may be easier for you. I’ll demonstrate how to send a patch via Gmail, which happens to be the e-mail agent I use; you can read detailed instructions for a number of mail programs at the end of the aforementioned `Documentation/SubmittingPatches` file in the Git source code.
+你可以用郵件用戶端軟體發送這些補丁檔，也可以直接在命令列發送。有些所謂智慧的郵件用戶端軟體會自作主張幫你調整格式，所以粘貼補丁到郵件正文時，有可能會丟失分行符號和若干空格。Git 提供了一個通過 IMAP 發送補丁檔的工具。接下來我會演示如何通過 Gmail 的 IMAP 伺服器發送。另外，在 Git 原始程式碼中有個 `Documentation/SubmittingPatches` 檔，可以仔細讀讀，看看其它郵件程式的相關導引。
 
-First, you need to set up the imap section in your `~/.gitconfig` file. You can set each value separately with a series of `git config` commands, or you can add them manually; but in the end, your config file should look something like this:
+首先在 `~/.gitconfig` 檔中配置 imap 項。每個選項都可用 `git config` 命令分別設置，當然直接編輯檔添加以下內容更便捷：
 
 	[imap]
 	  folder = "[Gmail]/Drafts"
@@ -531,20 +529,39 @@ First, you need to set up the imap section in your `~/.gitconfig` file. You can 
 	  port = 993
 	  sslverify = false
 
-If your IMAP server doesn’t use SSL, the last two lines probably aren’t necessary, and the host value will be `imap://` instead of `imaps://`.
-When that is set up, you can use `git send-email` to place the patch series in the Drafts folder of the specified IMAP server:
+如果你的 IMAP 伺服器沒有啟用 SSL，就無需配置最後那兩行，並且 host 應該以 `imap://` 開頭而不再是有 `s` 的 `imaps://`。
+保存設定檔後，就能用 `git send-email` 命令把補丁作為郵件依次發送到指定的 IMAP 伺服器上的資料夾中（譯注：這裡就是 Gmail 的 `[Gmail]/Drafts` 資料夾。但如果你的語言設置不是英文，此處的資料夾 Drafts 字樣會變為對應的語言。）：
+
+	$ cat *.patch |git imap-send
+	Resolving imap.gmail.com... ok
+	Connecting to [74.125.142.109]:993... ok
+	Logging in...
+	sending 2 messages
+	100% (2/2) done
+
+At this point, you should be able to go to your Drafts folder, change the To field to the mailing list you’re sending the patch to, possibly CC the maintainer or person responsible for that section, and send it off.
+
+You can also send the patches through an SMTP server. As before, you can set each value separately with a series of `git config` commands, or you can add them manually in the sendemail section in your `~/.gitconfig` file:
+
+	[sendemail]
+	  smtpencryption = tls
+	  smtpserver = smtp.gmail.com
+	  smtpuser = user@gmail.com
+	  smtpserverport = 587
+
+After this is done, you can use `git send-email` to send your patches:
 
 	$ git send-email *.patch
 	0001-added-limit-to-log-function.patch
 	0002-changed-log-output-to-30-from-25.patch
-	Who should the emails appear to be from? [Jessica Smith <jessica@example.com>] 
+	Who should the emails appear to be from? [Jessica Smith <jessica@example.com>]
 	Emails will be sent from: Jessica Smith <jessica@example.com>
 	Who should the emails be sent to? jessica@example.com
 	Message-ID to be used as In-Reply-To for the first email? y
 
-Then, Git spits out a bunch of log information looking something like this for each patch you’re sending:
+接下來，Git 會根據每個補丁依次輸出類似下面的日誌：
 
-	(mbox) Adding cc: Jessica Smith <jessica@example.com> from 
+	(mbox) Adding cc: Jessica Smith <jessica@example.com> from
 	  \line 'From: Jessica Smith <jessica@example.com>'
 	OK. Log says:
 	Sendmail: /usr/sbin/sendmail -i jessica@example.com
@@ -559,54 +576,52 @@ Then, Git spits out a bunch of log information looking something like this for e
 
 	Result: OK
 
-At this point, you should be able to go to your Drafts folder, change the To field to the mailing list you’re sending the patch to, possibly CC the maintainer or person responsible for that section, and send it off.
+### 小結 ###
 
-### Summary ###
+本節主要介紹了常見 Git 專案協作的工作流程，還有一些説明處理這些工作的命令和工具。接下來我們要看看如何維護 Git 項目，並成為一個合格的項目管理員，或是集成經理。
 
-This section has covered a number of common workflows for dealing with several very different types of Git projects you’re likely to encounter and introduced a couple of new tools to help you manage this process. Next, you’ll see how to work the other side of the coin: maintaining a Git project. You’ll learn how to be a benevolent dictator or integration manager.
+## 專案的管理 ##
 
-## Maintaining a Project ##
+既然是相互協作，在貢獻代碼的同時，也免不了要維護管理自己的專案。像是怎麼處理別人用 `format-patch` 生成的補丁，或是集成遠端倉庫上某個分支上的變化等等。但無論是管理代碼倉庫，還是幫忙審核收到的補丁，都需要同貢獻者約定某種長期可持續的工作方式。
 
-In addition to knowing how to effectively contribute to a project, you’ll likely need to know how to maintain one. This can consist of accepting and applying patches generated via `format-patch` and e-mailed to you, or integrating changes in remote branches for repositories you’ve added as remotes to your project. Whether you maintain a canonical repository or want to help by verifying or approving patches, you need to know how to accept work in a way that is clearest for other contributors and sustainable by you over the long run.
+### 使用特性分支進行工作 ###
 
-### Working in Topic Branches ###
-
-When you’re thinking of integrating new work, it’s generally a good idea to try it out in a topic branch — a temporary branch specifically made to try out that new work. This way, it’s easy to tweak a patch individually and leave it if it’s not working until you have time to come back to it. If you create a simple branch name based on the theme of the work you’re going to try, such as `ruby_client` or something similarly descriptive, you can easily remember it if you have to abandon it for a while and come back later. The maintainer of the Git project tends to namespace these branches as well — such as `sc/ruby_client`, where `sc` is short for the person who contributed the work. 
-As you’ll remember, you can create the branch based off your master branch like this:
+如果想要集成新的代碼進來，最好局限在特性分支上做。臨時的特性分支可以讓你隨意嘗試，進退自如。比如碰上無法正常工作的補丁，可以先擱在那邊，直到有時間仔細核查修復為止。創建的分支可以用相關的主題關鍵字命名，比如 `ruby_client` 或者其它類似的描述性詞語，以幫助將來回憶。Git 專案本身還時常把分支名稱分置於不同命名空間下，比如 `sc/ruby_client` 就說明這是 `sc` 這個人貢獻的。
+現在從當前主幹分支為基礎，新建臨時分支：
 
 	$ git branch sc/ruby_client master
 
-Or, if you want to also switch to it immediately, you can use the `checkout -b` option:
+另外，如果你希望立即轉到分支上去工作，可以用 `checkout -b`：
 
 	$ git checkout -b sc/ruby_client master
 
-Now you’re ready to add your contributed work into this topic branch and determine if you want to merge it into your longer-term branches.
+好了，現在已經準備妥當，可以試著將別人貢獻的代碼合併進來了。之後評估一下有沒有問題，最後再決定是不是真的要併入主幹。
 
-### Applying Patches from E-mail ###
+### 採納來自郵件的補丁 ###
 
-If you receive a patch over e-mail that you need to integrate into your project, you need to apply the patch in your topic branch to evaluate it. There are two ways to apply an e-mailed patch: with `git apply` or with `git am`.
+如果收到一個通過電郵發來的補丁，你應該先把它應用到特性分支上進行評估。有兩種應用補丁的方法：`git apply` 或者 `git am`。
 
-#### Applying a Patch with apply ####
+#### 使用 apply 命令應用補丁 ####
 
-If you received the patch from someone who generated it with the `git diff` or a Unix `diff` command, you can apply it with the `git apply` command. Assuming you saved the patch at `/tmp/patch-ruby-client.patch`, you can apply the patch like this:
+如果收到的補丁文件是用 `git diff` 或由其它 Unix 的 `diff` 命令生成，就該用 `git apply` 命令來應用補丁。假設補丁文件存在 `/tmp/patch-ruby-client.patch`，可以這樣運行：
 
 	$ git apply /tmp/patch-ruby-client.patch
 
-This modifies the files in your working directory. It’s almost identical to running a `patch -p1` command to apply the patch, although it’s more paranoid and accepts fewer fuzzy matches than patch. It also handles file adds, deletes, and renames if they’re described in the `git diff` format, which `patch` won’t do. Finally, `git apply` is an "apply all or abort all" model where either everything is applied or nothing is, whereas `patch` can partially apply patchfiles, leaving your working directory in a weird state. `git apply` is overall much more paranoid than `patch`. It won’t create a commit for you — after running it, you must stage and commit the changes introduced manually.
+這會修改當前工作目錄下的檔，效果基本與運行 `patch -p1` 打補丁一樣，但它更為嚴格，且不會出現混亂。如果是 `git diff` 格式描述的補丁，此命令還會相應地添加，刪除，重命名檔。當然，普通的 `patch` 命令是不會這麼做的。另外請注意，`git apply` 是一個事務性操作的命令，也就是說，要麼所有補丁都打上去，要麼全部放棄。所以不會出現 `patch` 命令那樣，一部分檔打上了補丁而另一部分卻沒有，這樣一種不上不下的修訂狀態。所以總的來說，`git apply` 要比 `patch` 嚴謹許多。因為僅僅是更新當前的檔，所以此命令不會自動生成提交物件，你得手工緩存相應檔的更新狀態並執行提交命令。
 
-You can also use git apply to see if a patch applies cleanly before you try actually applying it — you can run `git apply --check` with the patch:
+在實際打補丁之前，可以先用 `git apply --check` 查看補丁是否能夠乾淨順利地應用到當前分支中：
 
-	$ git apply --check 0001-seeing-if-this-helps-the-gem.patch 
+	$ git apply --check 0001-seeing-if-this-helps-the-gem.patch
 	error: patch failed: ticgit.gemspec:1
 	error: ticgit.gemspec: patch does not apply
 
-If there is no output, then the patch should apply cleanly. This command also exits with a non-zero status if the check fails, so you can use it in scripts if you want.
+如果沒有任何輸出，表示我們可以順利採納該補丁。如果有問題，除了報告錯誤資訊之外，該命令還會返回一個非零的狀態，所以在 shell 腳本裡可用於檢測狀態。
 
-#### Applying a Patch with am ####
+#### 使用 am 命令應用補丁 ####
 
-If the contributor is a Git user and was good enough to use the `format-patch` command to generate their patch, then your job is easier because the patch contains author information and a commit message for you. If you can, encourage your contributors to use `format-patch` instead of `diff` to generate patches for you. You should only have to use `git apply` for legacy patches and things like that.
+如果貢獻者也用 Git，且擅於製作 `format-patch` 補丁，那你的合併工作將會非常輕鬆。因為這些補丁中除了檔內容差異外，還包含了作者資訊和提交消息。所以請鼓勵貢獻者用 `format-patch` 生成補丁。對於傳統的 `diff` 命令生成的補丁，則只能用 `git apply` 處理。
 
-To apply a patch generated by `format-patch`, you use `git am`. Technically, `git am` is built to read an mbox file, which is a simple, plain-text format for storing one or more e-mail messages in one text file. It looks something like this:
+對於 `format-patch` 製作的新式補丁，應當使用 `git am` 命令。從技術上來說，`git am`  能夠讀取 mbox 格式的檔。這是種簡單的純文字檔，可以包含多封電郵，格式上用 From 加空格以及隨便什麼輔助資訊所組成的行作為分隔行，以區分每封郵件，就像這樣：
 
 	From 330090432754092d704da8e76ca5c05c198e71a8 Mon Sep 17 00:00:00 2001
 	From: Jessica Smith <jessica@example.com>
@@ -615,14 +630,14 @@ To apply a patch generated by `format-patch`, you use `git am`. Technically, `gi
 
 	Limit log functionality to the first 20
 
-This is the beginning of the output of the format-patch command that you saw in the previous section. This is also a valid mbox e-mail format. If someone has e-mailed you the patch properly using git send-email, and you download that into an mbox format, then you can point git am to that mbox file, and it will start applying all the patches it sees. If you run a mail client that can save several e-mails out in mbox format, you can save entire patch series into a file and then use git am to apply them one at a time. 
+這是 `format-patch` 命令輸出的開頭幾行，也是一個有效的 mbox 檔案格式。如果有人用 `git send-email` 給你發了一個補丁，你可以將此郵件下載到本地，然後運行 `git am` 命令來應用這個補丁。如果你的郵件用戶端能將多封電郵匯出為 mbox 格式的檔，就可以用 `git am` 一次性應用所有匯出的補丁。
 
-However, if someone uploaded a patch file generated via `format-patch` to a ticketing system or something similar, you can save the file locally and then pass that file saved on your disk to `git am` to apply it:
+如果貢獻者將 `format-patch` 生成的補丁檔上傳到類似 Request Ticket 一樣的任務處理系統，那麼可以先下載到本地，繼而使用 `git am` 應用該補丁：
 
-	$ git am 0001-limit-log-function.patch 
+	$ git am 0001-limit-log-function.patch
 	Applying: add limit to log function
 
-You can see that it applied cleanly and automatically created the new commit for you. The author information is taken from the e-mail’s `From` and `Date` headers, and the message of the commit is taken from the `Subject` and body (before the patch) of the e-mail. For example, if this patch was applied from the mbox example I just showed, the commit generated would look something like this:
+你會看到它被乾淨地應用到本地分支，並自動創建了新的提交物件。作者資訊取自郵件頭 `From` 和 `Date`，提交消息則取自 `Subject` 以及正文中補丁之前的內容。來看具體實例，採納之前展示的那個 mbox 電郵補丁後，最新的提交對象為：
 
 	$ git log --pretty=fuller -1
 	commit 6c5e70b984a60b3cecd395edd5b48a7575bf58e0
@@ -635,11 +650,11 @@ You can see that it applied cleanly and automatically created the new commit for
 
 	   Limit log functionality to the first 20
 
-The `Commit` information indicates the person who applied the patch and the time it was applied. The `Author` information is the individual who originally created the patch and when it was originally created. 
+`Commit` 部分顯示的是採納補丁的人，以及採納的時間。而 `Author` 部分則顯示的是原作者，以及創建補丁的時間。
 
-But it’s possible that the patch won’t apply cleanly. Perhaps your main branch has diverged too far from the branch the patch was built from, or the patch depends on another patch you haven’t applied yet. In that case, the `git am` process will fail and ask you what you want to do:
+有時，我們也會遇到打不上補丁的情況。這多半是因為主幹分支和補丁的基礎分支相差太遠，但也可能是因為某些依賴補丁還未應用。這種情況下，`git am` 會報錯並詢問該怎麼做：
 
-	$ git am 0001-seeing-if-this-helps-the-gem.patch 
+	$ git am 0001-seeing-if-this-helps-the-gem.patch
 	Applying: seeing if this helps the gem
 	error: patch failed: ticgit.gemspec:1
 	error: ticgit.gemspec: patch does not apply
@@ -648,16 +663,16 @@ But it’s possible that the patch won’t apply cleanly. Perhaps your main bran
 	If you would prefer to skip this patch, instead run "git am --skip".
 	To restore the original branch and stop patching run "git am --abort".
 
-This command puts conflict markers in any files it has issues with, much like a conflicted merge or rebase operation. You solve this issue much the same way — edit the file to resolve the conflict, stage the new file, and then run `git am --resolved` to continue to the next patch:
+Git 會在有衝突的檔裡加入衝突解決標記，這同合併或衍合操作一樣。解決的辦法也一樣，先編輯檔消除衝突，然後暫存檔，最後運行 `git am --resolved` 提交修正結果：
 
 	$ (fix the file)
-	$ git add ticgit.gemspec 
+	$ git add ticgit.gemspec
 	$ git am --resolved
 	Applying: seeing if this helps the gem
 
-If you want Git to try a bit more intelligently to resolve the conflict, you can pass a `-3` option to it, which makes Git attempt a three-way merge. This option isn’t on by default because it doesn’t work if the commit the patch says it was based on isn’t in your repository. If you do have that commit — if the patch was based on a public commit — then the `-3` option is generally much smarter about applying a conflicting patch:
+如果想讓 Git 更智慧地處理衝突，可以用 `-3` 選項進行三方合併。如果當前分支未包含該補丁的基礎代碼或其祖先，那麼三方合併就會失敗，所以該選項預設為關閉狀態。一般來說，如果該補丁是基於某個公開的提交製作而成的話，你總是可以通過同步來獲取這個共同祖先，所以用三方合併選項可以解決很多麻煩：
 
-	$ git am -3 0001-seeing-if-this-helps-the-gem.patch 
+	$ git am -3 0001-seeing-if-this-helps-the-gem.patch
 	Applying: seeing if this helps the gem
 	error: patch failed: ticgit.gemspec:1
 	error: ticgit.gemspec: patch does not apply
@@ -665,49 +680,49 @@ If you want Git to try a bit more intelligently to resolve the conflict, you can
 	Falling back to patching base and 3-way merge...
 	No changes -- Patch already applied.
 
-In this case, I was trying to apply a patch I had already applied. Without the `-3` option, it looks like a conflict.
+像上面的例子，對於打過的補丁我又再打一遍，自然會產生衝突，但因為加上了 `-3` 選項，所以它很聰明地告訴我，無需更新，原有的補丁已經應用。
 
-If you’re applying a number of patches from an mbox, you can also run the `am` command in interactive mode, which stops at each patch it finds and asks if you want to apply it:
+對於一次應用多個補丁時所用的 mbox 格式檔，可以用 `am` 命令的交互模式選項 `-i`，這樣就會在打每個補丁前停住，詢問該如何操作：
 
 	$ git am -3 -i mbox
 	Commit Body is:
 	--------------------------
 	seeing if this helps the gem
 	--------------------------
-	Apply? [y]es/[n]o/[e]dit/[v]iew patch/[a]ccept all 
+	Apply? [y]es/[n]o/[e]dit/[v]iew patch/[a]ccept all
 
-This is nice if you have a number of patches saved, because you can view the patch first if you don’t remember what it is, or not apply the patch if you’ve already done so.
+在多個補丁要打的情況下，這是個非常好的辦法，一方面可以預覽下補丁內容，同時也可以有選擇性的接納或跳過某些補丁。
 
-When all the patches for your topic are applied and committed into your branch, you can choose whether and how to integrate them into a longer-running branch.
+打完所有補丁後，如果測試下來新特性可以正常工作，那就可以安心地將當前特性分支合併到長期分支中去了。
 
-### Checking Out Remote Branches ###
+### 檢出遠端分支 ###
 
-If your contribution came from a Git user who set up their own repository, pushed a number of changes into it, and then sent you the URL to the repository and the name of the remote branch the changes are in, you can add them as a remote and do merges locally.
+如果貢獻者有自己的 Git 倉庫，並將修改推送到此倉庫中，那麼當你拿到倉庫的訪問位址和對應分支的名稱後，就可以加為遠端分支，然後在本地進行合併。
 
-For instance, if Jessica sends you an e-mail saying that she has a great new feature in the `ruby-client` branch of her repository, you can test it by adding the remote and checking out that branch locally:
+比如，Jessica 發來一封郵件，說在她代碼庫中的 `ruby-client` 分支上已經實現了某個非常棒的新功能，希望我們能幫忙測試一下。我們可以先把她的倉庫加為遠端倉庫，然後抓取資料，完了再將她所說的分支檢出到本地來測試：
 
 	$ git remote add jessica git://github.com/jessica/myproject.git
 	$ git fetch jessica
 	$ git checkout -b rubyclient jessica/ruby-client
 
-If she e-mails you again later with another branch containing another great feature, you can fetch and check out because you already have the remote setup.
+若是不久她又發來郵件，說還有個很棒的功能實現在另一分支上，那我們只需重新抓取下最新資料，然後檢出那個分支到本地就可以了，無需重複設置遠端倉庫。
 
-This is most useful if you’re working with a person consistently. If someone only has a single patch to contribute once in a while, then accepting it over e-mail may be less time consuming than requiring everyone to run their own server and having to continually add and remove remotes to get a few patches. You’re also unlikely to want to have hundreds of remotes, each for someone who contributes only a patch or two. However, scripts and hosted services may make this easier — it depends largely on how you develop and how your contributors develop.
+這種做法便於同別人保持長期的合作關係。但前提是要求貢獻者有自己的伺服器，而我們也需要為每個人建一個遠端分支。有些貢獻者提交代碼補丁並不是很頻繁，所以通過郵件接收補丁效率會更高。同時我們自己也不會希望建上百來個分支，卻只從每個分支取一兩個補丁。但若是用腳本程式來管理，或直接使用代碼倉庫託管服務，就可以簡化此過程。當然，選擇何種方式取決於你和貢獻者的喜好。
 
-The other advantage of this approach is that you get the history of the commits as well. Although you may have legitimate merge issues, you know where in your history their work is based; a proper three-way merge is the default rather than having to supply a `-3` and hope the patch was generated off a public commit to which you have access.
+使用遠端分支的另外一個好處是能夠得到提交歷史。不管代碼合併是不是會有問題，至少我們知道該分支的歷史分叉點，所以默認會從共同祖先開始自動進行三方合併，無需 `-3` 選項，也不用像打補丁那樣祈禱存在共同的基準點。
 
-If you aren’t working with a person consistently but still want to pull from them in this way, you can provide the URL of the remote repository to the `git pull` command. This does a one-time pull and doesn’t save the URL as a remote reference:
+如果只是臨時合作，只需用 `git pull` 命令抓取遠端倉庫上的資料，合併到本地臨時分支就可以了。一次性的抓取動作自然不會把該倉庫位址加為遠程倉庫。
 
 	$ git pull git://github.com/onetimeguy/project.git
 	From git://github.com/onetimeguy/project
 	 * branch            HEAD       -> FETCH_HEAD
 	Merge made by recursive.
 
-### Determining What Is Introduced ###
+### 決斷代碼取捨 ###
 
-Now you have a topic branch that contains contributed work. At this point, you can determine what you’d like to do with it. This section revisits a couple of commands so you can see how you can use them to review exactly what you’ll be introducing if you merge this into your main branch.
+現在特性分支上已合併好了貢獻者的代碼，是時候決斷取捨了。本節將回顧一些之前學過的命令，以看清將要合併到主幹的是哪些代碼，從而理解它們到底做了些什麼，是否真的要併入。
 
-It’s often helpful to get a review of all the commits that are in this branch but that aren’t in your master branch. You can exclude commits in the master branch by adding the `--not` option before the branch name. For example, if your contributor sends you two patches and you create a branch called `contrib` and applied those patches there, you can run this:
+一般我們會先看下，特性分支上都有哪些新增的提交。比如在 `contrib` 特性分支上打了兩個補丁，僅查看這兩個補丁的提交資訊，可以用 `--not` 選項指定要遮罩的分支 `master`，這樣就會剔除重複的提交歷史：
 
 	$ git log contrib --not master
 	commit 5b6235bd297351589efc4d73316f0a68d484f118
@@ -722,107 +737,107 @@ It’s often helpful to get a review of all the commits that are in this branch 
 
 	    updated the gemspec to hopefully work better
 
-To see what changes each commit introduces, remember that you can pass the `-p` option to `git log` and it will append the diff introduced to each commit.
+還可以查看每次提交的具體修改。請牢記，在 `git log` 後加 `-p` 選項將展示每次提交的內容差異。
 
-To see a full diff of what would happen if you were to merge this topic branch with another branch, you may have to use a weird trick to get the correct results. You may think to run this:
+如果想看當前分支同其他分支合併時的完整內容差異，有個小竅門：
 
 	$ git diff master
 
-This command gives you a diff, but it may be misleading. If your `master` branch has moved forward since you created the topic branch from it, then you’ll get seemingly strange results. This happens because Git directly compares the snapshots of the last commit of the topic branch you’re on and the snapshot of the last commit on the `master` branch. For example, if you’ve added a line in a file on the `master` branch, a direct comparison of the snapshots will look like the topic branch is going to remove that line.
+雖然能得到差異內容，但請記住，結果有可能和我們的預期不同。一旦主幹 `master` 在特性分支創建之後有所修改，那麼通過 `diff` 命令來比較的，是最新主幹上的提交快照。顯然，這不是我們所要的。比方在 `master` 分支中某個檔裡添了一行，然後運行上面的命令，簡單的比較最新快照所得到的結論只能是，特性分支中刪除了這一行。
 
-If `master` is a direct ancestor of your topic branch, this isn’t a problem; but if the two histories have diverged, the diff will look like you’re adding all the new stuff in your topic branch and removing everything unique to the `master` branch.
+這個很好理解：如果 `master` 是特性分支的直接祖先，不會產生任何問題；如果它們的提交歷史在不同的分叉上，那麼產生的內容差異，看起來就像是增加了特性分支上的新代碼，同時刪除了 `master` 分支上的新代碼。
 
-What you really want to see are the changes added to the topic branch — the work you’ll introduce if you merge this branch with master. You do that by having Git compare the last commit on your topic branch with the first common ancestor it has with the master branch.
+實際上我們真正想要看的，是新加入到特性分支的代碼，也就是合併時會併入主幹的代碼。所以，準確地講，我們應該比較特性分支和它同 `master` 分支的共同祖先之間的差異。
 
-Technically, you can do that by explicitly figuring out the common ancestor and then running your diff on it:
+我們可以手工定位它們的共同祖先，然後與之比較：
 
 	$ git merge-base contrib master
 	36c7dba2c95e6bbb78dfa822519ecfec6e1ca649
-	$ git diff 36c7db 
+	$ git diff 36c7db
 
-However, that isn’t convenient, so Git provides another shorthand for doing the same thing: the triple-dot syntax. In the context of the `diff` command, you can put three periods after another branch to do a `diff` between the last commit of the branch you’re on and its common ancestor with another branch:
+但這麼做很麻煩，所以 Git 提供了便捷的 `...` 語法。對於 `diff` 命令，可以把 `...` 加在原始分支（擁有共同祖先）和當前分支之間：
 
 	$ git diff master...contrib
 
-This command shows you only the work your current topic branch has introduced since its common ancestor with master. That is a very useful syntax to remember.
+現在看到的，就是實際將要引入的新代碼。這是一個非常有用的命令，應該牢記。
 
-### Integrating Contributed Work ###
+### 代碼集成 ###
 
-When all the work in your topic branch is ready to be integrated into a more mainline branch, the question is how to do it. Furthermore, what overall workflow do you want to use to maintain your project? You have a number of choices, so I’ll cover a few of them.
+一旦特性分支準備停當，接下來的問題就是如何集成到更靠近主線的分支中。此外還要考慮維護專案的總體步驟是什麼。雖然有很多選擇，不過我們這裡只介紹其中一部分。
 
-#### Merging Workflows ####
+#### 合併流程 ####
 
-One simple workflow merges your work into your `master` branch. In this scenario, you have a `master` branch that contains basically stable code. When you have work in a topic branch that you’ve done or that someone has contributed and you’ve verified, you merge it into your master branch, delete the topic branch, and then continue the process.  If we have a repository with work in two branches named `ruby_client` and `php_client` that looks like Figure 5-19 and merge `ruby_client` first and then `php_client` next, then your history will end up looking like Figure 5-20.
+一般最簡單的情形，是在 `master` 分支中維護穩定代碼，然後在特性分支上開發新功能，或是審核測試別人貢獻的代碼，接著將它併入主幹，最後刪除這個特性分支，如此反復。來看示例，假設當前代碼庫中有兩個分支，分別為 `ruby_client` 和 `php_client`，如圖 5-19 所示。然後先把 `ruby_client` 合併進主幹，再合併 `php_client`，最後的提交歷史如圖 5-20 所示。
 
-Insert 18333fig0519.png 
-Figure 5-19. History with several topic branches.
+Insert 18333fig0519.png
+圖 5-19. 多個特性分支
 
 Insert 18333fig0520.png
-Figure 5-20. After a topic branch merge.
+圖 5-20. 合併特性分支之後
 
-That is probably the simplest workflow, but it’s problematic if you’re dealing with larger repositories or projects.
+這是最簡單的流程，所以在處理大一些的項目時可能會有問題。
 
-If you have more developers or a larger project, you’ll probably want to use at least a two-phase merge cycle. In this scenario, you have two long-running branches, `master` and `develop`, in which you determine that `master` is updated only when a very stable release is cut and all new code is integrated into the `develop` branch. You regularly push both of these branches to the public repository. Each time you have a new topic branch to merge in (Figure 5-21), you merge it into `develop` (Figure 5-22); then, when you tag a release, you fast-forward `master` to wherever the now-stable `develop` branch is (Figure 5-23).
+對於大型專案，至少需要維護兩個長期分支 `master` 和 `develop`。新代碼（圖 5-21 中的 `ruby_client`）將首先併入 `develop` 分支（圖 5-22 中的 `C8`），經過一個階段，確認 `develop` 中的代碼已穩定到可發行時，再將 `master` 分支快進到穩定點（圖 5-23 中的 `C8`）。而平時這兩個分支都會被推送到公開的代碼庫。
 
-Insert 18333fig0521.png 
-Figure 5-21. Before a topic branch merge.
+Insert 18333fig0521.png
+圖 5-21. 特性分支合併前
 
-Insert 18333fig0522.png 
-Figure 5-22. After a topic branch merge.
+Insert 18333fig0522.png
+圖 5-22. 特性分支合併後
 
-Insert 18333fig0523.png 
-Figure 5-23. After a topic branch release.
+Insert 18333fig0523.png
+圖 5-23. 特性分支發佈後
 
-This way, when people clone your project’s repository, they can either check out master to build the latest stable version and keep up to date on that easily, or they can check out develop, which is the more cutting-edge stuff.
-You can also continue this concept, having an integrate branch where all the work is merged together. Then, when the codebase on that branch is stable and passes tests, you merge it into a develop branch; and when that has proven itself stable for a while, you fast-forward your master branch.
+這樣，在人們克隆倉庫時就有兩種選擇：既可檢出最新穩定版本，確保正常使用；也能檢出開發版本，試用最前沿的新特性。
+你也可以擴展這個概念，先將所有新代碼合併到臨時特性分支，等到該分支穩定下來並通過測試後，再併入 `develop` 分支。然後，讓時間檢驗一切，如果這些代碼確實可以正常工作相當長一段時間，那就有理由相信它已經足夠穩定，可以放心併入主幹分支發佈。
 
-#### Large-Merging Workflows ####
+#### 大專案的合併流程 ####
 
-The Git project has four long-running branches: `master`, `next`, and `pu` (proposed updates) for new work, and `maint` for maintenance backports. When new work is introduced by contributors, it’s collected into topic branches in the maintainer’s repository in a manner similar to what I’ve described (see Figure 5-24). At this point, the topics are evaluated to determine whether they’re safe and ready for consumption or whether they need more work. If they’re safe, they’re merged into `next`, and that branch is pushed up so everyone can try the topics integrated together.
+Git 專案本身有四個長期分支：用於發佈的 `master` 分支、用於合併基本穩定特性的 `next` 分支、用於合併仍需改進特性的 `pu` 分支（pu 是 proposed updates 的縮寫），以及用於除錯維護的 `maint` 分支（maint 取自 maintenance）。維護者可以按照之前介紹的方法，將貢獻者的代碼引入為不同的特性分支（如圖 5-24 所示），然後測試評估，看哪些特性能穩定工作，哪些還需改進。穩定的特性可以併入 `next` 分支，然後再推送到公共倉庫，以供其他人試用。
 
-Insert 18333fig0524.png 
-Figure 5-24. Managing a complex series of parallel contributed topic branches.
+Insert 18333fig0524.png
+圖 5-24. 管理複雜的並行貢獻
 
-If the topics still need work, they’re merged into `pu` instead. When it’s determined that they’re totally stable, the topics are re-merged into `master` and are then rebuilt from the topics that were in `next` but didn’t yet graduate to `master`. This means `master` almost always moves forward, `next` is rebased occasionally, and `pu` is rebased even more often (see Figure 5-25).
+仍需改進的特性可以先併入 `pu` 分支。直到它們完全穩定後再併入 `master`。同時一併檢查下 `next` 分支，將足夠穩定的特性也併入 `master`。所以一般來說，`master` 始終是在快進，`next` 偶爾做下衍合，而 `pu` 則是頻繁衍合，如圖 5-25 所示：
 
-Insert 18333fig0525.png 
-Figure 5-25. Merging contributed topic branches into long-term integration branches.
+Insert 18333fig0525.png
+圖 5-25. 將特性併入長期分支
 
-When a topic branch has finally been merged into `master`, it’s removed from the repository. The Git project also has a `maint` branch that is forked off from the last release to provide backported patches in case a maintenance release is required. Thus, when you clone the Git repository, you have four branches that you can check out to evaluate the project in different stages of development, depending on how cutting edge you want to be or how you want to contribute; and the maintainer has a structured workflow to help them vet new contributions.
+併入 `master` 後的特性分支，已經無需保留分支索引，放心刪除好了。Git 專案還有一個 `maint` 分支，它是以最近一次發行版本為基礎分化而來的，用於維護除錯補丁。所以克隆 Git 項目倉庫後會得到這四個分支，通過檢出不同分支可以瞭解各自進展，或是試用前沿特性，或是貢獻代碼。而維護者則通過管理這些分支，逐步有序地併入協力廠商貢獻。
 
-#### Rebasing and Cherry Picking Workflows ####
+#### 衍合與挑揀（cherry-pick）的流程 ####
 
-Other maintainers prefer to rebase or cherry-pick contributed work on top of their master branch, rather than merging it in, to keep a mostly linear history. When you have work in a topic branch and have determined that you want to integrate it, you move to that branch and run the rebase command to rebuild the changes on top of your current master (or `develop`, and so on) branch. If that works well, you can fast-forward your `master` branch, and you’ll end up with a linear project history.
+一些維護者更喜歡衍合或者挑揀貢獻者的代碼，而不是簡單的合併，因為這樣能夠保持線性的提交歷史。如果你完成了一個特性的開發，並決定將它引入到主幹代碼中，你可以轉到那個特性分支然後執行衍合命令，好在你的主幹分支上（也可能是`develop`分支之類的）重新提交這些修改。如果這些代碼工作得很好，你就可以快進`master`分支，得到一個線性的提交歷史。
 
-The other way to move introduced work from one branch to another is to cherry-pick it. A cherry-pick in Git is like a rebase for a single commit. It takes the patch that was introduced in a commit and tries to reapply it on the branch you’re currently on. This is useful if you have a number of commits on a topic branch and you want to integrate only one of them, or if you only have one commit on a topic branch and you’d prefer to cherry-pick it rather than run rebase. For example, suppose you have a project that looks like Figure 5-26.
+另一個引入代碼的方法是挑揀。挑揀類似於針對某次特定提交的衍合。它首先提取某次提交的補丁，然後試著應用在當前分支上。如果某個特性分支上有多個commits，但你只想引入其中之一就可以使用這種方法。也可能僅僅是因為你喜歡用挑揀，討厭衍合。假設你有一個類似圖 5-26 的工程。
 
-Insert 18333fig0526.png 
-Figure 5-26. Example history before a cherry pick.
+Insert 18333fig0526.png
+圖 5-26. 挑揀（cherry-pick）之前的歷史 
 
-If you want to pull commit `e43a6` into your master branch, you can run
+如果你希望拉取`e43a6`到你的主幹分支，可以這樣：
 
 	$ git cherry-pick e43a6fd3e94888d76779ad79fb568ed180e5fcdf
 	Finished one cherry-pick.
 	[master]: created a0a41a9: "More friendly message when locking the index fails."
 	 3 files changed, 17 insertions(+), 3 deletions(-)
 
-This pulls the same change introduced in `e43a6`, but you get a new commit SHA-1 value, because the date applied is different. Now your history looks like Figure 5-27.
+這將會引入`e43a6`的代碼，但是會得到不同的SHA-1值，因為應用日期不同。現在你的歷史看起來像圖 5-27.
 
-Insert 18333fig0527.png 
-Figure 5-27. History after cherry-picking a commit on a topic branch.
+Insert 18333fig0527.png
+圖 5-27. 挑揀（cherry-pick）之後的歷史
 
-Now you can remove your topic branch and drop the commits you didn’t want to pull in.
+現在，你可以刪除這個特性分支並丟棄你不想引入的那些commit。
 
-### Tagging Your Releases ###
+### 給發行版本簽名  ###
 
-When you’ve decided to cut a release, you’ll probably want to drop a tag so you can re-create that release at any point going forward. You can create a new tag as I discussed in Chapter 2. If you decide to sign the tag as the maintainer, the tagging may look something like this:
+你可以刪除上次發佈的版本並重新打標籤，也可以像第二章所說的那樣建立一個新的標籤。如果你決定以維護者的身份給發行版本簽名，應該這樣做：
 
 	$ git tag -s v1.5 -m 'my signed 1.5 tag'
 	You need a passphrase to unlock the secret key for
 	user: "Scott Chacon <schacon@gmail.com>"
 	1024-bit DSA key, ID F721C45A, created 2009-02-09
 
-If you do sign your tags, you may have the problem of distributing the public PGP key used to sign your tags. The maintainer of the Git project has solved this issue by including their public key as a blob in the repository and then adding a tag that points directly to that content. To do this, you can figure out which key you want by running `gpg --list-keys`:
+完成簽名之後，如何分發PGP公開金鑰（public key）是個問題。（譯者注：分發公開金鑰是為了驗證標籤）。還好，Git的設計者想到了解決辦法：可以把key（既公開金鑰）作為blob變數寫入Git庫，然後把它的內容直接寫在標籤裡。`gpg --list-keys`命令可以顯示出你所擁有的key：
 
 	$ gpg --list-keys
 	/Users/schacon/.gnupg/pubring.gpg
@@ -831,49 +846,49 @@ If you do sign your tags, you may have the problem of distributing the public PG
 	uid                  Scott Chacon <schacon@gmail.com>
 	sub   2048g/45D02282 2009-02-09 [expires: 2010-02-09]
 
-Then, you can directly import the key into the Git database by exporting it and piping that through `git hash-object`, which writes a new blob with those contents into Git and gives you back the SHA-1 of the blob:
+然後，匯出key的內容並經由管道符傳遞給`git hash-object`，之後鑰匙會以blob類型寫入Git中，最後返回這個blob量的SHA-1值：
 
 	$ gpg -a --export F721C45A | git hash-object -w --stdin
 	659ef797d181633c87ec71ac3f9ba29fe5775b92
 
-Now that you have the contents of your key in Git, you can create a tag that points directly to it by specifying the new SHA-1 value that the `hash-object` command gave you:
+現在你的Git已經包含了這個key的內容了，可以通過不同的SHA-1值指定不同的key來創建標籤。
 
 	$ git tag -a maintainer-pgp-pub 659ef797d181633c87ec71ac3f9ba29fe5775b92
 
-If you run `git push --tags`, the `maintainer-pgp-pub` tag will be shared with everyone. If anyone wants to verify a tag, they can directly import your PGP key by pulling the blob directly out of the database and importing it into GPG:
+在運行`git push --tags`命令之後，`maintainer-pgp-pub`標籤就會公佈給所有人。如果有人想要校驗標籤，他可以使用如下命令導入你的key：
 
 	$ git show maintainer-pgp-pub | gpg --import
 
-They can use that key to verify all your signed tags. Also, if you include instructions in the tag message, running `git show <tag>` will let you give the end user more specific instructions about tag verification.
+人們可以用這個key校驗你簽名的所有標籤。另外，你也可以在標籤資訊裡寫入一個操作嚮導，用戶只需要運行`git show <tag>`查看標籤資訊，然後按照你的嚮導就能完成校驗。
 
-### Generating a Build Number ###
+### 生成內部版本號 ###
 
-Because Git doesn’t have monotonically increasing numbers like 'v123' or the equivalent to go with each commit, if you want to have a human-readable name to go with a commit, you can run `git describe` on that commit. Git gives you the name of the nearest tag with the number of commits on top of that tag and a partial SHA-1 value of the commit you’re describing:
+因為Git不會為每次提交自動附加類似'v123'的遞增序列，所以如果你想要得到一個便於理解的提交號可以運行`git describe`命令。Git將會返回一個字串，由三部分組成：最近一次標定的版本號，加上自那次標定之後的提交次數，再加上一段所描述的提交的SHA-1值：
 
 	$ git describe master
 	v1.6.2-rc1-20-g8c5b85c
 
-This way, you can export a snapshot or build and name it something understandable to people. In fact, if you build Git from source code cloned from the Git repository, `git --version` gives you something that looks like this. If you’re describing a commit that you have directly tagged, it gives you the tag name.
+這個字串可以作為快照的名字，方便人們理解。如果你的Git是你自己下載源碼然後編譯安裝的，你會發現`git --version`命令的輸出和這個字串差不多。如果在一個剛剛打完標籤的提交上運行`describe`命令，只會得到這次標定的版本號，而沒有後面兩項資訊。
 
-The `git describe` command favors annotated tags (tags created with the `-a` or `-s` flag), so release tags should be created this way if you’re using `git describe`, to ensure the commit is named properly when described. You can also use this string as the target of a checkout or show command, although it relies on the abbreviated SHA-1 value at the end, so it may not be valid forever. For instance, the Linux kernel recently jumped from 8 to 10 characters to ensure SHA-1 object uniqueness, so older `git describe` output names were invalidated.
+`git describe`命令只適用於有標注的標籤（通過`-a`或者`-s`選項創建的標籤），所以發行版本的標籤都應該是帶有標注的，以保證`git describe`能夠正確的執行。你也可以把這個字串作為`checkout`或者`show`命令的目標，因為他們最終都依賴於一個簡短的SHA-1值，當然如果這個SHA-1值失效他們也跟著失效。最近Linux內核為了保證SHA-1值的唯一性，將位數由8位擴展到10位，這就導致擴展之前的`git describe`輸出完全失效了。
 
-### Preparing a Release ###
+### 準備發佈 ###
 
-Now you want to release a build. One of the things you’ll want to do is create an archive of the latest snapshot of your code for those poor souls who don’t use Git. The command to do this is `git archive`:
+現在可以發佈一個新的版本了。首先要將代碼的壓縮包歸檔，方便那些可憐的還沒有使用Git的人們。可以使用`git archive`：
 
 	$ git archive master --prefix='project/' | gzip > `git describe master`.tar.gz
 	$ ls *.tar.gz
 	v1.6.2-rc1-20-g8c5b85c.tar.gz
 
-If someone opens that tarball, they get the latest snapshot of your project under a project directory. You can also create a zip archive in much the same way, but by passing the `--format=zip` option to `git archive`:
+這個壓縮包解壓出來的是一個資料夾，裡面是你項目的最新代碼快照。你也可以用類似的方法建立一個zip壓縮包，在`git archive`加上`--format=zip`選項：
 
 	$ git archive master --prefix='project/' --format=zip > `git describe master`.zip
 
-You now have a nice tarball and a zip archive of your project release that you can upload to your website or e-mail to people.
+現在你有了一個tar.gz壓縮包和一個zip壓縮包，可以把他們上傳到你網站上或者用e-mail發給別人。
 
-### The Shortlog ###
+### 製作簡報 ###
 
-It’s time to e-mail your mailing list of people who want to know what’s happening in your project. A nice way of quickly getting a sort of changelog of what has been added to your project since your last release or e-mail is to use the `git shortlog` command. It summarizes all the commits in the range you give it; for example, the following gives you a summary of all the commits since your last release, if your last release was named v1.0.1:
+是時候通知郵寄清單裡的朋友們來檢驗你的成果了。使用`git shortlog`命令可以方便快捷的製作一份修改日誌（changelog），告訴大家上次發佈之後又增加了哪些特性和修復了哪些bug。實際上這個命令能夠統計給定範圍內的所有提交;假如你上一次發佈的版本是v1.0.1，下面的命令將給出自從上次發佈之後的所有提交的簡介：
 
 	$ git shortlog --no-merges master --not v1.0.1
 	Chris Wanstrath (8):
@@ -890,8 +905,8 @@ It’s time to e-mail your mailing list of people who want to know what’s happ
 	      Version bump to 1.0.2
 	      Regenerated gemspec for version 1.0.2
 
-You get a clean summary of all the commits since v1.0.1, grouped by author, that you can e-mail to your list.
+這就是自從v1.0.1版本以來的所有提交的簡介，內容按照作者分組，以便你能快速的發e-mail給他們。
 
-## Summary ##
+## 小結 ##
 
-You should feel fairly comfortable contributing to a project in Git as well as maintaining your own project or integrating other users’ contributions. Congratulations on being an effective Git developer! In the next chapter, you’ll learn more powerful tools and tips for dealing with complex situations, which will truly make you a Git master.
+你學會了如何使用Git為專案做貢獻，也學會了如何使用Git維護你的專案。恭喜！你已經成為一名高效的開發者。在下一章你將學到更強大的工具來處理更加複雜的問題，之後你會變成一位Git大師。

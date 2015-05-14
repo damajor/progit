@@ -79,16 +79,16 @@ Git 可以為你的 SHA-1 值生成出簡短且唯一的縮寫。如果你傳遞
 
 在你工作的同時，Git 在後臺的工作之一就是保存一份引用日誌(reflog)——一份記錄最近幾個月你的 HEAD 和分支引用的日誌。 
 
-你可以使用 `git reflog` 來查看引用日誌： 
+你可以使用 `git reflog` 來查看引用日誌：
 
 	$ git reflog
-	734713b... HEAD@{0}: commit: fixed refs handling, added gc auto, updated
-	d921970... HEAD@{1}: merge phedders/rdocs: Merge made by recursive.
-	1c002dd... HEAD@{2}: commit: added some blame and merge stuff
-	1c36188... HEAD@{3}: rebase -i (squash): updating HEAD
-	95df984... HEAD@{4}: commit: # This is a combination of two commits.
-	1c36188... HEAD@{5}: rebase -i (squash): updating HEAD
-	7e05da5... HEAD@{6}: rebase -i (pick): updating HEAD
+	734713b HEAD@{0}: commit: fixed refs handling, added gc auto, updated
+	d921970 HEAD@{1}: merge phedders/rdocs: Merge made by recursive.
+	1c002dd HEAD@{2}: commit: added some blame and merge stuff
+	1c36188 HEAD@{3}: rebase -i (squash): updating HEAD
+	95df984 HEAD@{4}: commit: # This is a combination of two commits.
+	1c36188 HEAD@{5}: rebase -i (squash): updating HEAD
+	7e05da5 HEAD@{6}: rebase -i (pick): updating HEAD
 
 每次你的分支頂端因為某些原因被修改時，Git 就會為你將資訊保存在這個臨時歷史記錄裡面。你也可以使用這份資料來指明更早的分支。如果你想查看倉庫中 HEAD 在五次前的值，你可以使用引用日誌的輸出中的 @{n} 引用： 
 
@@ -100,12 +100,12 @@ Git 可以為你的 SHA-1 值生成出簡短且唯一的縮寫。如果你傳遞
 
 它就會顯示昨天分支的頂端在哪。這項技術只對還在你引用日誌裡的資料有用，所以不能用來查看比幾個月前還早的提交。 
 
-想要看類似於 `git log` 輸出格式的引用日誌資訊，你可以執行 `git log -g`： 
+想要看類似於 `git log` 輸出格式的引用日誌資訊，你可以執行 `git log -g`：
 
 	$ git log -g master
 	commit 734713bc047d87bf7eac9674765ae793478c50d3
 	Reflog: master@{0} (Scott Chacon <schacon@gmail.com>)
-	Reflog message: commit: fixed refs handling, added gc auto, updated 
+	Reflog message: commit: fixed refs handling, added gc auto, updated
 	Author: Scott Chacon <schacon@gmail.com>
 	Date:   Fri Jan 2 18:32:33 2009 -0800
 
@@ -128,10 +128,10 @@ Git 可以為你的 SHA-1 值生成出簡短且唯一的縮寫。如果你傳遞
 	$ git log --pretty=format:'%h %s' --graph
 	* 734713b fixed refs handling, added gc auto, updated tests
 	*   d921970 Merge commit 'phedders/rdocs'
-	|\  
+	|\
 	| * 35cfb2b Some rdoc changes
 	* | 1c002dd added some blame and merge stuff
-	|/  
+	|/
 	* 1c36188 ignore *.gem
 	* 9b29157 add open3_detach to gemspec file list
 
@@ -189,7 +189,7 @@ Git 可以為你的 SHA-1 值生成出簡短且唯一的縮寫。如果你傳遞
 
 最常用的指明範圍的方法是雙點的語法。這種語法主要是讓 Git 區分出可從一個分支中獲得而不能從另一個分支中獲得的提交。例如，假設你有類似於圖 6-1 的提交歷史。 
 
-Insert 18333fig0601.png 
+Insert 18333fig0601.png
 Figure 6-1. 範圍選擇的提交歷史實例
 
 你想要查看你的試驗分支(experiment)上哪些沒有被提交到主分支，那麼你就可以使用 `master..experiment` 來讓 Git 顯示這些提交的日誌——這句話的意思是「所有可從 experiment 分支中獲得而不能從 master 分支中獲得的提交」。為了使例子簡單明瞭，我使用了圖示中提交物件的字母，來代替它們在實際的日誌輸出裏的顯示順序： 
@@ -263,7 +263,7 @@ Git 提供了很多腳本來輔助某些命令列任務。這裡，你將看到�
 	*** Commands ***
 	  1: status     2: update      3: revert     4: add untracked
 	  5: patch      6: diff        7: quit       8: help
-	What now> 
+	What now>
 
 你會看到這個命令以一個完全不同的視圖顯示了你的暫存區——主要是你通過 `git status` 得到的那些資訊但是稍微簡潔但資訊更加豐富一些。它在左側列出了你暫存的變更，在右側列出了未被暫存的變更。 
 
@@ -291,7 +291,7 @@ Git 提供了很多腳本來輔助某些命令列任務。這裡，你將看到�
 
 每個檔旁邊的 `*` 表示選中的檔將被暫存。如果你在 update>> 提示後直接敲入 Enter，Git會替你把所有選中的內容暫存： 
 
-	Update>> 
+	Update>>
 	updated 2 paths
 
 	*** Commands ***
@@ -373,7 +373,7 @@ Git 提供了很多腳本來輔助某些命令列任務。這裡，你將看到�
 	   end
 
 	   def blame(path)
-	Stage this hunk [y,n,a,d,/,j,J,g,e,?]? 
+	Stage this hunk [y,n,a,d,/,j,J,g,e,?]?
 
 此處你有很多選擇。輸入 `?` 可以顯示清單： 
 
@@ -421,7 +421,7 @@ simplegit.rb 的狀態非常有意思。它顯示有幾行被暫存了，有幾�
 	#
 	#      modified:   index.html
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#      modified:   lib/simplegit.rb
@@ -439,20 +439,20 @@ simplegit.rb 的狀態非常有意思。它顯示有幾行被暫存了，有幾�
 
 	$ git status
 	# On branch master
-	nothing to commit (working directory clean)
+	nothing to commit, working directory clean
 
 這時，你可以方便地切換到其他分支工作；你的變更都保存在堆疊上。要查看現有的儲藏，你可以使用 `git stash list`： 
 
 	$ git stash list
 	stash@{0}: WIP on master: 049d078 added the index file
-	stash@{1}: WIP on master: c264051... Revert "added file_size"
-	stash@{2}: WIP on master: 21d80a5... added number to log
+	stash@{1}: WIP on master: c264051 Revert "added file_size"
+	stash@{2}: WIP on master: 21d80a5 added number to log
 
 在這個案例中，之前已經進行了兩次儲藏，所以你可以取得三個不同的儲藏。你可以重新應用你剛剛的儲藏，所採用的命令就是原本 stash 命令輸出的輔助訊息裡提示的：`git stash apply`。如果你想應用較舊的儲藏，你可以通過名字指定它，像這樣：`git stash apply stash@{2}`。如果你不指明，Git 預設使用最近的儲藏並嘗試應用它： 
 
 	$ git stash apply
 	# On branch master
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#      modified:   index.html
@@ -470,7 +470,7 @@ simplegit.rb 的狀態非常有意思。它顯示有幾行被暫存了，有幾�
 	#
 	#      modified:   index.html
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#      modified:   lib/simplegit.rb
@@ -480,8 +480,8 @@ apply 選項只嘗試應用儲藏的工作——儲藏的內容仍然在堆疊�
 
 	$ git stash list
 	stash@{0}: WIP on master: 049d078 added the index file
-	stash@{1}: WIP on master: c264051... Revert "added file_size"
-	stash@{2}: WIP on master: 21d80a5... added number to log
+	stash@{1}: WIP on master: c264051 Revert "added file_size"
+	stash@{2}: WIP on master: 21d80a5 added number to log
 	$ git stash drop stash@{0}
 	Dropped stash@{0} (364e91f3f268f0900bc3ee613f9f733e82aaed43)
 
@@ -500,7 +500,7 @@ apply 選項只嘗試應用儲藏的工作——儲藏的內容仍然在堆疊�
 你可能會想要新建一個別名，在你的 git 增加一個 `stash-unapply` 命令，這樣更有效率。例如：
 
     $ git config --global alias.stash-unapply '!git stash show -p | git apply -R'
-    $ git stash
+    $ git stash apply
     $ #... work work work
     $ git stash-unapply
 
@@ -516,7 +516,7 @@ apply 選項只嘗試應用儲藏的工作——儲藏的內容仍然在堆疊�
 	#
 	#      modified:   index.html
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#      modified:   lib/simplegit.rb
@@ -565,12 +565,19 @@ apply 選項只嘗試應用儲藏的工作——儲藏的內容仍然在堆疊�
 	#
 	# Commands:
 	#  p, pick = use commit
+	#  r, reword = use commit, but edit the commit message
 	#  e, edit = use commit, but stop for amending
 	#  s, squash = use commit, but meld into previous commit
+	#  f, fixup = like "squash", but discard this commit's log message
+	#  x, exec = run command (the rest of the line) using shell
+	#
+	# These lines can be re-ordered; they are executed from top to bottom.
 	#
 	# If you remove a line here THAT COMMIT WILL BE LOST.
+	#
 	# However, if you remove everything, the rebase will be aborted.
 	#
+	# Note that empty commits are commented out
 
 很重要的一點是你得注意這些提交的順序與你通常通過 `log` 命令看到的是相反的。如果你執行 `log`，你會看到下面這樣的結果： 
 
@@ -631,12 +638,19 @@ apply 選項只嘗試應用儲藏的工作——儲藏的內容仍然在堆疊�
 	#
 	# Commands:
 	#  p, pick = use commit
+	#  r, reword = use commit, but edit the commit message
 	#  e, edit = use commit, but stop for amending
 	#  s, squash = use commit, but meld into previous commit
+	#  f, fixup = like "squash", but discard this commit's log message
+	#  x, exec = run command (the rest of the line) using shell
+	#
+	# These lines can be re-ordered; they are executed from top to bottom.
 	#
 	# If you remove a line here THAT COMMIT WILL BE LOST.
+	#
 	# However, if you remove everything, the rebase will be aborted.
 	#
+	# Note that empty commits are commented out
 
 如果不用 ”pick” 或者 ”edit”，而是指定 ”squash”，Git 會同時應用那個變更和它之前的變更並將提交說明歸併。因此，如果你想將這三個提交合併為單一提交，你可以將腳本修改成這樣： 
 
@@ -699,7 +713,7 @@ Git 在腳本中應用了最後一次提交（`a5f4a0d`），你的歷史看起�
 	Rewrite 6b9b3cf04e7c5686a9cb838c3f36a8cb6a0fc2bd (21/21)
 	Ref 'refs/heads/master' was rewritten
 
-`--tree-filter` 選項會在每次 checkout 專案時先執行指定的命令然後重新提交結果。在這個例子中，你會在所有快照中刪除一個名叫 password.txt 的檔，無論它是否存在。如果你想刪除所有不小心提交上去的編輯器備份檔案，你可以執行類似 `git filter-branch --tree-filter 'rm -f *~' HEAD` 的命令。 
+`--tree-filter` 選項會在每次 checkout 專案時先執行指定的命令然後重新提交結果。在這個例子中，你會在所有快照中刪除一個名叫 password.txt 的檔，無論它是否存在。如果你想刪除所有不小心提交上去的編輯器備份檔案，你可以執行類似 `git filter-branch --tree-filter "find * -type f -name '*~' -delete" HEAD` 的命令。 
 
 你可以觀察到 Git 重寫目錄樹並且提交，然後將分支指標移到末尾。一個比較好的辦法是在一個測試分支上做這件事，然後在你確定結果真的是你所要的之後，再 hard-reset 你的主分支。要在你所有的分支上運行 `filter-branch` 的話，你可以傳遞一個 `--all` 參數給該命令。 
 
@@ -737,7 +751,7 @@ Git 也提供了一些工具來幫助你 debug 專案中遇到的問題。由於
 
 如果你在追查程式碼中的 bug，想要知道這是什麼時候、為什麼被引進來的，檔案標注會是你的最佳工具。它會顯示檔案中對每一行進行修改的最近一次提交。因此，如果你發現自己程式碼中的一個 method 有 bug，你可以用 `git blame` 來標注該檔案，查看那個 method 的每一行分別是由誰在哪一天修改的。下面這個例子使用了 `-L` 選項來限制輸出範圍在第12至22行：
 
-	$ git blame -L 12,22 simplegit.rb 
+	$ git blame -L 12,22 simplegit.rb
 	^4832fe2 (Scott Chacon  2008-03-15 10:31:28 -0700 12)  def show(tree = 'master')
 	^4832fe2 (Scott Chacon  2008-03-15 10:31:28 -0700 13)   command("git show #{tree}")
 	^4832fe2 (Scott Chacon  2008-03-15 10:31:28 -0700 14)  end
@@ -745,7 +759,7 @@ Git 也提供了一些工具來幫助你 debug 專案中遇到的問題。由於
 	9f6560e4 (Scott Chacon  2008-03-17 21:52:20 -0700 16)  def log(tree = 'master')
 	79eaf55d (Scott Chacon  2008-04-06 10:15:08 -0700 17)   command("git log #{tree}")
 	9f6560e4 (Scott Chacon  2008-03-17 21:52:20 -0700 18)  end
-	9f6560e4 (Scott Chacon  2008-03-17 21:52:20 -0700 19) 
+	9f6560e4 (Scott Chacon  2008-03-17 21:52:20 -0700 19)
 	42cf2861 (Magnus Chacon 2008-04-13 10:45:01 -0700 20)  def blame(path)
 	42cf2861 (Magnus Chacon 2008-04-13 10:45:01 -0700 21)   command("git blame #{path}")
 	42cf2861 (Magnus Chacon 2008-04-13 10:45:01 -0700 22)  end
@@ -754,8 +768,8 @@ Git 也提供了一些工具來幫助你 debug 專案中遇到的問題。由於
 
 另一件很酷的事情是，Git 並不會明確地記錄對檔案所做的重命名(rename)動作。它會記錄快照，然後根據實際狀況嘗試找出隱藏在背後的重命名動作。這其中有一個很有意思的特性，就是你可以讓它找出所有的程式碼移動。如果你在 `git blame` 後加上 `-C`，Git 會分析你所標注的檔案，然後嘗試找出其中代碼片段的原始出處，如果它是從其他地方拷貝過來的話。最近，我在對 `GITServerHandler.m` 這個檔案做程式碼重構(code refactoring)，將它分解為多個檔案，其中一個是 `GITPackUpload.m`。通過對 `GITPackUpload.m` 執行帶 `-C` 參數的 blame 命令，我可以看到程式碼片段的原始出處： 
 
-	$ git blame -C -L 141,153 GITPackUpload.m 
-	f344f58d GITServerHandler.m (Scott 2009-01-04 141) 
+	$ git blame -C -L 141,153 GITPackUpload.m
+	f344f58d GITServerHandler.m (Scott 2009-01-04 141)
 	f344f58d GITServerHandler.m (Scott 2009-01-04 142) - (void) gatherObjectShasFromC
 	f344f58d GITServerHandler.m (Scott 2009-01-04 143) {
 	70befddd GITServerHandler.m (Scott 2009-03-22 144)         //NSLog(@"GATHER COMMI
@@ -852,7 +866,7 @@ Git 通過子模組處理這個問題。子模組允許你將一個 Git 倉庫�
 
 首先你注意到有一個 `.gitmodules` 文件。這是一個設定檔，保存了專案 URL 和你拉取到的本地子目錄 
 
-	$ cat .gitmodules 
+	$ cat .gitmodules
 	[submodule "rack"]
 	      path = rack
 	      url = git://github.com/chneukirchen/rack.git
@@ -940,7 +954,7 @@ Git 通過子模組處理這個問題。子模組允許你將一個 Git 倉庫�
 	 1 files changed, 1 insertions(+), 1 deletions(-)
 	[master*]$ git status
 	# On branch master
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#   (use "git checkout -- <file>..." to discard changes in working directory)
 	#
@@ -1094,7 +1108,7 @@ Git 通過子模組處理這個問題。子模組允許你將一個 Git 倉庫�
 	$ ls
 	README
 
-要將 Rack 專案當作子目錄拉取到你的 `master` 專案中。你可以在 Git 中用 `git read-tree` 來實現。你會在第9章學到更多與 `read-tree` 和它的朋友相關的東西，目前你會知道它讀取一個分支的根目錄樹到當前的暫存區和工作目錄。你只要切換回你的 `master` 分支，然後拉取 `rack` 分支到你主專案的 `master` 分支的 `rack` 子目錄： 
+要將 Rack 專案當作子目錄拉取到你的 `master` 專案中。你可以在 Git 中用 `git read-tree` 來實現。你會在第9章學到更多與 `read-tree` 和它的朋友相關的東西，目前你會知道它讀取一個分支的根目錄樹到當前的暫存區和工作目錄。你只要切換回你的 `master` 分支，然後拉取 `rack_branch` 分支到你主專案的 `master` 分支的 `rack` 子目錄： 
 
 	$ git read-tree --prefix=rack/ -u rack_branch
 

@@ -6,16 +6,16 @@
 
 Kio estas versikontrolo, kaj kial vi okupiĝu pri tio? Versikontrolo estas sistemo kiu registras ŝanĝojn pri dosiero aŭ dosieraro dumtempe por ke vi povu revoki specifajn versiojn poste. Por la ekzemploj en ĉi tiu libro vi uzos programaran fontkodon kiel la dosierojn versikontrolataj, sed vere vi povas fari ĉi tion pri ĉiaj dosieroj komputilaj.
 
-Se vi estas grafika aŭ retpaĝa dizajnisto kaj vi volas If you are a graphic or web designer and want to keep every version of an image or layout (which you would most certainly want to), a Version Control System (VCS) is a very wise thing to use. It allows you to revert files back to a previous state, revert the entire project back to a previous state, compare changes over time, see who last modified something that might be causing a problem, who introduced an issue and when, and more. Using a VCS also generally means that if you screw things up or lose files, you can easily recover. In addition, you get all this for very little overhead.
+Se vi estas grafika aŭ retpaĝa dizajnisto kaj vi volas manteni ĉiujn versiojn de bildo aŭ aspekto (kion vi nepre volu), versikontrola sistemo (VCS, version control system en la angla) estas tre uzinda. Ĝi permesas al vi remeti dosierojn al antaŭa stato, kompari ŝanĝojn laŭ la tempo, vidi kiu ŝanĝis ion kio povus kaŭzi problemon, kiu enmetis problemon kaj kiam, kaj pli. Uzante VCSon kutime ankaŭ signifas ke se vi ion fuŝigis aŭ se vi perdis dosierojn, vi facile povas reiri. Aldone, vi ĉion tion havas kun malmulta superŝarĝo.
 
-### Local Version Control Systems ###
+### Lokaj versikontrolaj sistemoj ###
 
-Many people’s version-control method of choice is to copy files into another directory (perhaps a time-stamped directory, if they’re clever). This approach is very common because it is so simple, but it is also incredibly error prone. It is easy to forget which directory you’re in and accidentally write to the wrong file or copy over files you don’t mean to.
+La preferata versikontrola metodo de multaj homoj estas kopii dosierojn al alia dosierujo (se ili prudentas, kun hormarko en la nomo). Ĉi tiu maniero estas tre komuna ĉar ĝi estas tiom simpla, sed ĝi ankaŭ malfermas la pordon al multaj problemoj. Facilas forgesi en kiu dosierujo vi estas kaj akcidente skribi al la malĝusta dosiero aŭ kopii super dosierojn pri kiuj vi tion ne volis.
 
-To deal with this issue, programmers long ago developed local VCSs that had a simple database that kept all the changes to files under revision control (see Figure 1-1).
+Por ataki tiun problemon, programistoj antaŭlonge disvolvis lokajn VCSojn kiuj havis simplan datumbazon kiu mantenis ĉiujn ŝanĝojn al dosieroj sub kontrolo (vidu bildon 1-1).
 
 Insert 18333fig0101.png 
-Figure 1-1. Local version control diagram.
+Bildo 1-1. Diagramo pri loka versikontrolo.
 
 One of the more popular VCS tools was a system called rcs, which is still distributed with many computers today. Even the popular Mac OS X operating system includes the  rcs command when you install the Developer Tools. This tool basically works by keeping patch sets (that is, the differences between files) from one change to another in a special format on disk; it can then re-create what any file looked like at any point in time by adding up all the patches.
 
@@ -39,19 +39,19 @@ Figure 1-3. Distributed version control diagram.
 
 Furthermore, many of these systems deal pretty well with having several remote repositories they can work with, so you can collaborate with different groups of people in different ways simultaneously within the same project. This allows you to set up several types of workflows that aren’t possible in centralized systems, such as hierarchical models.
 
-## A Short History of Git ##
+## Mallonga historio de Git ##
 
-As with many great things in life, Git began with a bit of creative destruction and fiery controversy. The Linux kernel is an open source software project of fairly large scope. For most of the lifetime of the Linux kernel maintenance (1991–2002), changes to the software were passed around as patches and archived files. In 2002, the Linux kernel project began using a proprietary DVCS system called BitKeeper.
+Kiel pluraj el la bonaĵoj en la vivo, Git komenciĝis per iom da kreiga detruo kaj granda disputego. La Linux-kerno estas malfermitkoda programaro-projekto kun sufiĉe granda amplekso. Dum la plejparto de la tempo en kiu la Linux-kerno estis prizorgata (1991–2002), oni disdonis ŝanĝojn al la programaro kiel flikaĵoj kaj enarkivigitaj dosieroj. En 2002, la Linux-kerna projekto komencis uzi proprietan DVCS-sistemon nomita BitKeeper.
 
-In 2005, the relationship between the community that developed the Linux kernel and the commercial company that developed BitKeeper broke down, and the tool’s free-of-charge status was revoked. This prompted the Linux development community (and in particular Linus Torvalds, the creator of Linux) to develop their own tool based on some of the lessons they learned while using BitKeeper. Some of the goals of the new system were as follows:
+En 2005 rompiĝis la rilato inter la komunumo, en kiu la Linux-kerno evoluis, kaj la komerco firmao, kiu produktis BitKeeper; oni senvalidigis la senkostan statuson de la ilo. Tio instigis la komunumo, kiu sin prizorgis pri la evoluo de Linux—kaj precipe Linus Torvalds, la kreinto de Linux—krei sian propran ilon, tenante en la menso la lecionojn, kiujn ili lernis, dum ili uzis BitKeeper. Jen kelkaj el la celoj de la nova sistemo:
 
-*	Speed
-*	Simple design
-*	Strong support for non-linear development (thousands of parallel branches)
-*	Fully distributed
-*	Able to handle large projects like the Linux kernel efficiently (speed and data size)
+*	Rapideco
+*	Simpla desegno
+*	Bona subteno por nelinea konstruado (miloj da paralelaj branĉoj)
+*	Tute disa sistemo
+*	La ebleco rendimente trakti grandajn projektojn (kiel la Linux-kerno) koncerne al rapideco kaj datuma grandeco
 
-Since its birth in 2005, Git has evolved and matured to be easy to use and yet retain these initial qualities. It’s incredibly fast, it’s very efficient with large projects, and it has an incredible branching system for non-linear development (See Chapter 3).
+Ekde ĝia naskiĝo en 2005, Git evoluis kaj prenkreskiĝis por esti facile uzebla kaj tamen reteni tiujn dekomencaj ecoj. Ĝi estas nekredeble rapida; ĝi estas tre rendimenta kun grandaj projektoj; kaj ĝi havas bonegan branĉigan sistemon por nelinea konstruado (vidu Ĉapitro 3).
 
 ## Git Basics ##
 
@@ -112,9 +112,9 @@ The staging area is a simple file, generally contained in your Git directory, th
 
 The basic Git workflow goes something like this:
 
-1.	You modify files in your working directory.
-2.	You stage the files, adding snapshots of them to your staging area.
-3.	You do a commit, which takes the files as they are in the staging area and stores that snapshot permanently to your Git directory.
+1. You modify files in your working directory.
+2. You stage the files, adding snapshots of them to your staging area.
+3. You do a commit, which takes the files as they are in the staging area and stores that snapshot permanently to your Git directory.
 
 If a particular version of a file is in the git directory, it’s considered committed. If it’s modified but has been added to the staging area, it is staged. And if it was changed since it was checked out but has not been staged, it is modified. In Chapter 2, you’ll learn more about these states and how you can either take advantage of them or skip the staged part entirely.
 
@@ -157,13 +157,13 @@ If you want to install Git on Linux via a binary installer, you can generally do
 
 Or if you’re on a Debian-based distribution like Ubuntu, try apt-get:
 
-	$ apt-get install git-core
+	$ apt-get install git
 
 ### Installing on Mac ###
 
-There are two easy ways to install Git on a Mac. The easiest is to use the graphical Git installer, which you can download from the Google Code page (see Figure 1-7):
+There are two easy ways to install Git on a Mac. The easiest is to use the graphical Git installer, which you can download from the SourceForge page (see Figure 1-7):
 
-	http://code.google.com/p/git-osx-installer
+	http://sourceforge.net/projects/git-osx-installer/
 
 Insert 18333fig0107.png 
 Figure 1-7. Git OS X installer.
@@ -176,9 +176,9 @@ You don’t have to add all the extras, but you’ll probably want to include +s
 
 ### Installing on Windows ###
 
-Installing Git on Windows is very easy. The msysGit project has one of the easier installation procedures. Simply download the installer exe file from the Google Code page, and run it:
+Installing Git on Windows is very easy. The msysGit project has one of the easier installation procedures. Simply download the installer exe file from the GitHub page, and run it:
 
-	http://code.google.com/p/msysgit
+	http://msysgit.github.com/
 
 After it’s installed, you have both a command-line version (including an SSH client that will come in handy later) and the standard GUI.
 

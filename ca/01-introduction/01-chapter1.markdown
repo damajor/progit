@@ -1,14 +1,14 @@
-# Comen�em #
+# Comencem #
 
-Aquest cap�tol tracta com iniciar-se amb Git. Comen�arem explicant alguns conceptes relatius a les eines de control de versions, seguirem amb com instal�lar Git al nostre ordinador i finalment com configurar-lo per a treballar-hi. Al final d'aquest cap�tol, haur�es d'entendre el perqu� de Git, perqu� �s recomanable utilitzar-lo i amb les bases preparades per a comen�ar.
+Aquest capítol tracta com iniciar-se amb Git. Començarem explicant alguns conceptes relatius a les eines de control de versions, seguirem amb com instal·lar Git al nostre ordinador i finalment com configurar-lo per a treballar-hi. Al final d'aquest capítol, hauríes d'entendre el perquè de Git, perquè és recomanable utilitzar-lo i amb les bases preparades per a començar.
 
 ## Control de Versions ##
 
-What is version control, and why should you care? Version control is a system that records changes to a file or set of files over time so that you can recall specific versions later. For the examples in this book you will use software source code as the files being version controlled, though in reality you can do this with nearly any type of file on a computer.
+Que es el control de version i per què t'hauria d'importar? El control de versions es un sitema que registra els canvis a un arxiu o conjunt d'arxius de manera que despres pot recuperar cualsevol de les versions. Tot i que els exemples de control de versions del llibre son codi font, potfer servir gairebe quansevol mena de arxiu per del teu ordinador.
 
-If you are a graphic or web designer and want to keep every version of an image or layout (which you would most certainly want to), a Version Control System (VCS) is a very wise thing to use. It allows you to revert files back to a previous state, revert the entire project back to a previous state, compare changes over time, see who last modified something that might be causing a problem, who introduced an issue and when, and more. Using a VCS also generally means that if you screw things up or lose files, you can easily recover. In addition, you get all this for very little overhead.
+Si ets un disenyador gràfic o de pagines web i vols guardar cada escuna de les versions d'una imatge o disenys (que segur que vols) un sitema de control de versions (Version Control System -VCS-) sera una eina acurada. Et permetrà torna al estat anterior dels fitxers, tornar a un punt anterior de tot el projecte, comparà canvis en el proces, saber qui es el darrer a modificat coses que potser estant donant problemes, qui a introduit un tema i quant, i encara més coses. Fer servir VCS vol dir que si la pífias o pot arreglar, generalment. i tot aixo amb pocs costos.
 
-### Local Version Control Systems ###
+### Sitemas de control de versions locals ###
 
 Many people’s version-control method of choice is to copy files into another directory (perhaps a time-stamped directory, if they’re clever). This approach is very common because it is so simple, but it is also incredibly error prone. It is easy to forget which directory you’re in and accidentally write to the wrong file or copy over files you don’t mean to.
 
@@ -112,9 +112,9 @@ The staging area is a simple file, generally contained in your Git directory, th
 
 The basic Git workflow goes something like this:
 
-1.	You modify files in your working directory.
-2.	You stage the files, adding snapshots of them to your staging area.
-3.	You do a commit, which takes the files as they are in the staging area and stores that snapshot permanently to your Git directory.
+1. You modify files in your working directory.
+2. You stage the files, adding snapshots of them to your staging area.
+3. You do a commit, which takes the files as they are in the staging area and stores that snapshot permanently to your Git directory.
 
 If a particular version of a file is in the git directory, it’s considered committed. If it’s modified but has been added to the staging area, it is staged. And if it was changed since it was checked out but has not been staged, it is modified. In Chapter 2, you’ll learn more about these states and how you can either take advantage of them or skip the staged part entirely.
 
@@ -157,13 +157,13 @@ If you want to install Git on Linux via a binary installer, you can generally do
 
 Or if you’re on a Debian-based distribution like Ubuntu, try apt-get:
 
-	$ apt-get install git-core
+	$ apt-get install git
 
 ### Installing on Mac ###
 
-There are two easy ways to install Git on a Mac. The easiest is to use the graphical Git installer, which you can download from the Google Code page (see Figure 1-7):
+There are two easy ways to install Git on a Mac. The easiest is to use the graphical Git installer, which you can download from the SourceForge page (see Figure 1-7):
 
-	http://code.google.com/p/git-osx-installer
+	http://sourceforge.net/projects/git-osx-installer/
 
 Insert 18333fig0107.png 
 Figure 1-7. Git OS X installer.
@@ -176,9 +176,9 @@ You don’t have to add all the extras, but you’ll probably want to include +s
 
 ### Installing on Windows ###
 
-Installing Git on Windows is very easy. The msysGit project has one of the easier installation procedures. Simply download the installer exe file from the Google Code page, and run it:
+Installing Git on Windows is very easy. The msysGit project has one of the easier installation procedures. Simply download the installer exe file from the GitHub page, and run it:
 
-	http://code.google.com/p/msysgit
+	http://msysgit.github.com/
 
 After it’s installed, you have both a command-line version (including an SSH client that will come in handy later) and the standard GUI.
 

@@ -1,4 +1,4 @@
-# مبادئ Git #
+﻿# مبادئ Git #
 
 إذا كان هناك فصل واحد عليك قراءته لكي تبدأ بإستخدام Git، فعليك بهذا الفصل! يغطي هذا الفصل جميع الأوامر الأساسية التي عليك معرفتها لكي تتمكن من القيام بأغلب الأمور أثناء استخدامك لـ Git. في نهاية هذا الفصل يجب أن تكون قادراً على انشاء واعداد الـ repository لمشروعك وعلى تحديد الملفات التي ستتم متابعتها والتي ستترك، وعلى تهييئ التغييرات لعمل commit عليها. ستتعلم أيضاً كيف تعد Git لكي تتجاهل بعض أنواع الملفات، كيف تقوم بالتراجع عن الأخطاء التي سترتكبها بسرعة وبسهولة، كيف تتصفح تاريخ مشروعك وكيف تعرض التغيرات بين الـ commits، وكيف تنشر وتسحب (push & pull) التغيرات من الـ repositories البعيدة عنك.
 
@@ -40,27 +40,26 @@
 هناك عدد من البروتوكولات المختلفة التي يمكنك اسستعمالها لنقل المعلومات في git. المثال السابق يستعمل بروتوكول 'git://'، ولكن من الممكن أن تجد أيضاً استخداماً لـ 'http(s)://' أو 'user@server:/path.git'، والتي تستعمل بروتوكول SSH في النقل. في الفصل الرابع من الكتاب ستتعرف على الخيارات المتوفرة للتواصل مع الـ repository الخاصة بك وميزات ومساوئ كل منها.
 
 ## تسجيل التعديلات في الـ repository ##
+لديك repository أصلي ونسخة لتعمل عليها من ملفات المشروع. عليك أن تقوم ببعض التعديلات ثم تعمل commit لهذه التعديلات في repository الخاص بك في كل مرة يصل فيها المشروع إلى نقطة تود تسجيلها.
 
-You have a bona fide Git repository and a checkout or working copy of the files for that project. You need to make some changes and commit snapshots of those changes into your repository each time the project reaches a state you want to record.
+تذكر أنه كل ملف في مجلد العمل يمكن أن يكون في إحدى الحالتين فقط: مٌتَتَبّع tracked أو غير مٌتَتَبّع untracked. الملفات المٌتتبّعة هي ملفات كانت في أخر snapshot ويمكن إلغاء التعديلات عليها أو التعديل عليها أو وضعه في حالة staged (جاهز من أجل commit). الملفات غير المُتتبّعة هي كل الملفات الآخرى - أي ملف في مجلد العمل لم يكن موجوداً في آخر snapshot وليس معلماً بأنه staged. عندما تقوم باستنساخ repository جميع ملفاتك تكون بحالة متتبّعة tracked و غير معدلة unmodified لأنك قمت للتو بعمل check out ولم تقم بأي تعديل.
 
-Remember that each file in your working directory can be in one of two states: tracked or untracked. Tracked files are files that were in the last snapshot; they can be unmodified, modified, or staged. Untracked files are everything else - any files in your working directory that were not in your last snapshot and are not in your staging area.  When you first clone a repository, all of your files will be tracked and unmodified because you just checked them out and haven’t edited anything. 
-
-As you edit files, Git sees them as modified, because you’ve changed them since your last commit. You stage these modified files and then commit all your staged changes, and the cycle repeats. This lifecycle is illustrated in Figure 2-1.
+عندما تعدل الملفات، سيقوم git بتأشيرهم على أنهم modified، لأنك قمت بتغيرهم عن آخر commit. تقوم بعمل stage لهذه الملفات المعدلة ثم تقوم بعمل commit لجميع التغيرات في منطقة stage، وتتكرر العملية. يوضع الشكل 2-1 دورة العملية.
 
 Insert 18333fig0201.png 
-Figure 2-1. The lifecycle of the status of your files.
+الشكل 2-1. دورة حالة الملفات.
 
-### Checking the Status of Your Files ###
+### تفقد حالة ملفاتك ###
 
-The main tool you use to determine which files are in which state is the git status command. If you run this command directly after a clone, you should see something like this:
+باستخدام الأمر git status يمكننا معرفة حالة الملفات لدينا. إذا قمت بتشغيل هذا الأمر مباشرة بعد قيامك بعمل clone يجب أن ترى شيئاً يشبه التالي:
 
 	$ git status
 	# On branch master
-	nothing to commit (working directory clean)
+	nothing to commit, working directory clean
 
-This means you have a clean working directory—in other words, there are no tracked and modified files. Git also doesn’t see any untracked files, or they would be listed here. Finally, the command tells you which branch you’re on. For now, that is always master, which is the default; you won’t worry about it here. The next chapter will go over branches and references in detail.
+وهذا يعني أنه لديك مجلد عمل نظيف - بمعنى آخر، لايوجد أي ملفات معدلة أو ملفات غير مُتتبّعة. كما أنّ هذا الأمر يخبرك بأي فرع branch أنت تعمل. حالياً، دائماً هو master، وهو الافتراضي؛ في الفصل المقبل سنمر على الأفرع و المرجعيات references بالتفصيل.
 
-Let’s say you add a new file to your project, a simple README file. If the file didn’t exist before, and you run `git status`, you see your untracked file like so:
+لنقل بأنك قمت بإضافة ملف جديد على مشروعك، وليكن ملف README بسيط. إذا لم يكن الملف موجوداً مسبقاً، وقمت بتنفيذ الأمر `git status` سترى الملف غير مُتتبّعاً كما يلي:
 
 	$ vim README
 	$ git status
@@ -71,15 +70,15 @@ Let’s say you add a new file to your project, a simple README file. If the fil
 	#	README
 	nothing added to commit but untracked files present (use "git add" to track)
 
-You can see that your new README file is untracked, because it’s under the “Untracked files” heading in your status output. Untracked basically means that Git sees a file you didn’t have in the previous snapshot (commit); Git won’t start including it in your commit snapshots until you explicitly tell it to do so. It does this so you don’t accidentally begin including generated binary files or other files that you did not mean to include. You do want to start including README, so let’s start tracking the file.
+يمكنك ملاحظة أنّ ملفك الجديد README غير مُتتبّع، فهو تحت تبويب "untracked files" في خرج الأمر. ويعني ذلك أنّ git يرى ملفاً جديداً على commit السابقة؛ علماً أنّ git لن يقوم بإضافة هذا الملف إلى الملفات المتتبعة إلا إذا قمت بطلب ذلك بشكل مباشر، والهدف من ذلك من أجل حماية المشروع من الضم الخاطئ لملفات binary أو أي ملفات لا تود بإضافتها. إلاّ أنّك ترغب في إضافة README إلى الملفات المتتبّعة. وسنقوم بذلك حالاً.
 
-### Tracking New Files ###
+### تتبع الملفات الجديدة ###
 
-In order to begin tracking a new file, you use the command `git add`. To begin tracking the README file, you can run this:
+للقيام بتتبع ملف جديد عليه استخدام الأمر `git add` . مثلاً لنقم بتتبع الملف الجديد README:
 
 	$ git add README
 
-If you run your status command again, you can see that your README file is now tracked and staged:
+إذا قمنا بتنفيذ الأمر `git status` مرة أخرى سنلاحظ أن الملف README أصبح متتبعاً وجاهزاً staged للقيام بعملية commit:
 
 	$ git status
 	# On branch master
@@ -89,11 +88,11 @@ If you run your status command again, you can see that your README file is now t
 	#	new file:   README
 	#
 
-You can tell that it’s staged because it’s under the “Changes to be committed” heading. If you commit at this point, the version of the file at the time you ran git add is what will be in the historical snapshot. You may recall that when you ran git init earlier, you then ran git add (files) — that was to begin tracking files in your directory. The git add command takes a path name for either a file or a directory; if it’s a directory, the command adds all the files in that directory recursively.
+نستطيع معرفة بأن الملف staged من خلال ملاحظته تحت بند "changes to be comitted". إذا قمت بعمل commit في هذه اللحظة، سيقوم git بإضافة النسخة الحالية من الملف إلى snapshot. تذكر عندما قمنا بعمل git init سابقاً، ثم قمنا بإضافة الملفات عن طريق git add، كان ذلك للقيام ببدء تتبع الملفات في مجلد المشروع. يقبل الأمر git add مسار لملف أو لمجلد؛ فإذا كان المسار لمجلد سيقوم git بإضافة جميع الملفات والمجلدات ضمنه بشكل تعاودي recursively.
 
-### Staging Modified Files ###
+### تجهيز الملفات المعدلة ###
 
-Let’s change a file that was already tracked. If you change a previously tracked file called `benchmarks.rb` and then run your `status` command again, you get something that looks like this:
+لنقم بالتعديل على ملف قمنا بإضافته سابقاً. إذا قمنا مثلاً بالتعديل على ملف متتبع مسبقاً يدعى `benchmarks.rb`  وقمنا بتنفيذ الأمر git status، سيكون الخرج مشابهاً للخرج التالي:
 
 	$ git status
 	# On branch master
@@ -102,13 +101,13 @@ Let’s change a file that was already tracked. If you change a previously track
 	#
 	#	new file:   README
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#	modified:   benchmarks.rb
 	#
 
-The benchmarks.rb file appears under a section named “Changed but not updated” — which means that a file that is tracked has been modified in the working directory but not yet staged. To stage it, you run the `git add` command (it’s a multipurpose command — you use it to begin tracking new files, to stage files, and to do other things like marking merge-conflicted files as resolved). Let’s run `git add` now to stage the benchmarks.rb file, and then run `git status` again:
+يظهر الملف benchmarks.rb تحت بند "changes not staged for commit" وهذا يعني أن الملف المُتتبّع قد خضع لعملية تعديل لكنه لم يخضع للتجهيز من أجل commit. للقيام بتجهيزه (أو تأشيره للإضافة إلى commit الجديد) يجب علينا تنفيذ الأمر `git add` (لاحظ بأنّه أمر متعدد الوظائف - نستطيع استخدامه لتتبع الملفات الجديدة، تجهيز الملفات من أجل commit، والقيام بأمور أخرى مثل حل الاعتراضات في حال القيام بدمج merge). لنقم بتنفيذ git add الآن لوضع benchmarks.rb بحالة staged، ومن ثم لنقم بتنفيذ الأمر git status لنرى ما الذي قد تغيّر:
 
 	$ git add benchmarks.rb
 	$ git status
@@ -120,7 +119,7 @@ The benchmarks.rb file appears under a section named “Changed but not updated�
 	#	modified:   benchmarks.rb
 	#
 
-Both files are staged and will go into your next commit. At this point, suppose you remember one little change that you want to make in benchmarks.rb before you commit it. You open it again and make that change, and you’re ready to commit. However, let’s run `git status` one more time:
+كلا الملفين الآن جاهز للإدخال بعملية commit المقبلة. في هذه النقطة، لنفرض أنك تود القيام بتعديل على ملف benchmarks.rb قبل القيام بعملية commit، ستقوم بفتح الملف والتعديل عليه وأنك جاهز للقيام بعملية commit. لكن قبل ذلك، دعنا نقوم بتنفيذ الأمر git status مرة إضافية:
 
 	$ vim benchmarks.rb 
 	$ git status
@@ -131,13 +130,13 @@ Both files are staged and will go into your next commit. At this point, suppose 
 	#	new file:   README
 	#	modified:   benchmarks.rb
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#	modified:   benchmarks.rb
 	#
 
-What the heck? Now benchmarks.rb is listed as both staged and unstaged. How is that possible? It turns out that Git stages a file exactly as it is when you run the git add command. If you commit now, the version of benchmarks.rb as it was when you last ran the git add command is how it will go into the commit, not the version of the file as it looks in your working directory when you run git commit. If you modify a file after you run `git add`, you have to run `git add` again to stage the latest version of the file:
+ما الذي يحصل؟ كيف أصبح benchmarks.rb موجوداً تحت التبويبين staged و unstaged؟ لقد اتضح لنا أنّ git يقوم بتجهيز الملف على حالته عند قيامك بتنفيذ الأمر git add. إذا قمت بعمل commit الآن، ستكون نسخة benchmarks.rb كما كانت عند قيامك بتنفيذ الأمر git add وليس النسخة الجديدة التي حصلنا عليها بعد قيامنا بتعديل الملف. لذا إذا قمنا بتعديل ملف قبل قيامنا بتنفيذ git add، وقبل القيام بعملية commit، علينا تجهيز الملف مرة أخرى لعملية commit، وذلك بتنفيذ الأمر git add مرة جديدة:
 
 	$ git add benchmarks.rb
 	$ git status
@@ -149,39 +148,45 @@ What the heck? Now benchmarks.rb is listed as both staged and unstaged. How is t
 	#	modified:   benchmarks.rb
 	#
 
-### Ignoring Files ###
+### تجاهل الملفات ###
 
-Often, you’ll have a class of files that you don’t want Git to automatically add or even show you as being untracked. These are generally automatically generated files such as log files or files produced by your build system. In such cases, you can create a file listing patterns to match them named .gitignore.  Here is an example .gitignore file:
+غالباً ما تود من git تجاهل صنف من الملفات بحث لا يقوم بإضافتها تلقائياً أو لا يظهرها بأنّها غير متتبعة. تكون هذه الملفات عادة ملفات مولدة بشكل تلقائي مثل ملفات log و الملفات الوسيطة التي تولدها أدوات التطوير لديك. في مثل هذه الحالات/ يمكن إنشاء ملف .gitignore يحوي على أنماط لأسماء الملفات التي نرغب بتجاهلها. هذا مثال عمّا قد يحتويه ملف .gitignore:
 
 	$ cat .gitignore
 	*.[oa]
 	*~
 
-The first line tells Git to ignore any files ending in .o or .a — object and archive files that may be the product of building your code. The second line tells Git to ignore all files that end with a tilde (`~`), which is used by many text editors such as Emacs to mark temporary files. You may also include a log, tmp, or pid directory; automatically generated documentation; and so on. Setting up a .gitignore file before you get going is generally a good idea so you don’t accidentally commit files that you really don’t want in your Git repository.
+أول سطر يقوم بتوجيه git إلى تجاهل أي ملفات ذات لواحق من النوع o أو a - ملفات الكائنات وملفات الأرشيف وهي ملفات وسيطة تولدها أدوات بناء الكود عادة. السطر الثاني يوجه git إلى تجاهل أي ملفات تنتهي بالرمز (~) والتي تكون ملفات مؤقتة عادةً تستخدمها بعض برامج تحرير الكود. قد ترغب أيضاً بإضافة مجلدات log و tmp أو pid؛ أو حتى ملفات التوثيق تلقائية التوليد (من الكود عادة)، وغيرها. ينصح بإضافة ملف .gitignore في بداية إنشاء repository حتى نتجنب إضافة بعض الملفات عن طريق الخطأ وتلويث respository.
 
-The rules for the patterns you can put in the .gitignore file are as follows:
+قواعد الأنماط التي يمكن وضعها ضمن ملف .gitignore هي كالتالي:
 
-*	Blank lines or lines starting with # are ignored.
-*	Standard glob patterns work.
-*	You can end patterns with a forward slash (`/`) to specify a directory.
-*	You can negate a pattern by starting it with an exclamation point (`!`).
+*	الأسطر التي تبدأ بالرمز (#) يتم تجاهلها.
+*	أنماط glob القياسية تعمل.
+*	يمكن إنهاء النمط برمز (/) للدلالة على أنه يستهدف مجلداً.
+*	يمكن نفي نمط ما عن طريق وضع علامة التعجب (!) في بداية السطر قبل النمط.
 
-Glob patterns are like simplified regular expressions that shells use. An asterisk (`*`) matches zero or more characters; `[abc]` matches any character inside the brackets (in this case a, b, or c); a question mark (`?`) matches a single character; and brackets enclosing characters separated by a hyphen(`[0-9]`) matches any character between them (in this case 0 through 9) . 
+أنماط Glob عبارة عن نسخة مبسطة من Regular Expressions يتم استخدامها ضمن واجهة الأوامر shell. رمز النجمة (`*`) يطابق صفر-محرفاً أو أكثر. `[abc]` تطابق أي محارف ضمن الأقواس المربعة في هذه الحالة تكون a b c؛ علامة الاستفهام (?) تطابق محرفاً واحداً فقط؛ بينما تطابق الأقواس المربعة التي تحوي على محارف مفصولة بإشارة hyphen أي محرفاً يقع في المجال بين محرف البداية والنهاية - مثلا [0-9] يطابق محارف الأرقام بين 0 و 9 ضمناً.
 
-Here is another example .gitignore file:
+مثال عن ملف .gitignore:
 
 	# a comment – this is ignored
-	*.a       # no .a files
-	!lib.a    # but do track lib.a, even though you're ignoring .a files above
-	/TODO     # only ignore the root TODO file, not subdir/TODO
-	build/    # ignore all files in the build/ directory
-	doc/*.txt # ignore doc/notes.txt, but not doc/server/arch.txt
+	# no .a files
+	*.a
+	# but do track lib.a, even though you're ignoring .a files above
+	!lib.a
+	# only ignore the root TODO file, not subdir/TODO
+	/TODO
+	# ignore all files in the build/ directory
+	build/
+	# ignore doc/notes.txt, but not doc/server/arch.txt
+	doc/*.txt
 
-### Viewing Your Staged and Unstaged Changes ###
+### مشاهدة التغيّرات المجهّزة والتغيّرات غير المجهّزة ###
 
-If the `git status` command is too vague for you — you want to know exactly what you changed, not just which files were changed — you can use the `git diff` command. We’ll cover `git diff` in more detail later; but you’ll probably use it most often to answer these two questions: What have you changed but not yet staged? And what have you staged that you are about to commit? Although `git status` answers those questions very generally, `git diff` shows you the exact lines added and removed — the patch, as it were. 
+إذا لم تكتف بالمعلومات التي يقدمها لك أمر `git status` يمكنك استخدام أمر `git diff`  للحصول على معلومات تفصيلية حول التغيرات التي طرأت على الملفات. سنقوم لاحقاً بالتعمق في هذا الأمر، لكن الآن سنكتفي بالإشارة إلى الاستخدامات الغالبة له؛ حيث أنك ستستخدمه غالباً للحصول على أجوبة على هذين السؤالين: ما الذي قمنا بالتعديل عليه ولم نجهزه بعد لعملية commit؟ ما الملفات التي أصبحت جاهزة للدخول في عملية commit المقبلة؟
+بالرغم من أنه يمكننا أن نحصل على هذه المعلومات باستخدام أمر `git status` إلا أنّ أمر `git diff` يوضح لنا التغيرات التي جرت على مستوى السطر والحرف - ما الذي قمنا بإضافته وما الذي أزلناه!
 
-Let’s say you edit and stage the README file again and then edit the benchmarks.rb file without staging it. If you run your `status` command, you once again see something like this:
+لنقل أنك قمت بالتعديل على ملف README مرة أخرى وأشرته للإضافة إلى عملية commit وقمت بالتعديل على ملف benchmarks.rb ولم تضفه إلى قائمة الملفات الجاهزة لعملية commit؛ إذا قمت بتنفيذ الأمر `status` ستشاهد مرة أخرى شيئاً من الشكل:
 
 	$ git status
 	# On branch master
@@ -190,13 +195,13 @@ Let’s say you edit and stage the README file again and then edit the benchmark
 	#
 	#	new file:   README
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#
 	#	modified:   benchmarks.rb
 	#
 
-To see what you’ve changed but not yet staged, type `git diff` with no other arguments:
+لترى ما قمت بالتعديل عليه ولم تجهزه للإضافة نفذ الأمر `git diff` بدون إضافات:
 
 	$ git diff
 	diff --git a/benchmarks.rb b/benchmarks.rb
@@ -215,9 +220,9 @@ To see what you’ve changed but not yet staged, type `git diff` with no other a
 	           log = git.commits('master', 15)
 	           log.size
 
-That command compares what is in your working directory with what is in your staging area. The result tells you the changes you’ve made that you haven’t yet staged.
+يقوم هذا الأمر بعمل مقارنة بين الملفات ضمن مجلد العمل والملفات الموجودة في منطقة التعديلات المجهزة للإضافة staging area. وتخبرنا نتيجته بالتعديلات التي أجريناها ولم نقم بتجهيزها للإضافة إلى عملية commit المقبلة.
 
-If you want to see what you’ve staged that will go into your next commit, you can use `git diff –-cached`. (In Git versions 1.6.1 and later, you can also use `git diff –-staged`, which may be easier to remember.) This command compares your staged changes to your last commit:
+لمشاهدة الملفات ذات الحالة staged والتي ستدخل في عملية commit المقبلة، يمكن استخدام الأمر `git diff --cached` (بالنسبة للإصدارات 1.6.1 وما بعد من git يمكنك أيضاً استخدام الأمر `git diff --staged` )، كالتالي:
 
 	$ git diff --cached
 	diff --git a/README b/README
@@ -232,9 +237,9 @@ If you want to see what you’ve staged that will go into your next commit, you 
 	+
 	+Grit is a Ruby library for extracting information from a Git repository
 
-It’s important to note that `git diff` by itself doesn’t show all changes made since your last commit — only changes that are still unstaged. This can be confusing, because if you’ve staged all of your changes, `git diff` will give you no output.
+من الجدير بالذكر أن أمر `git diff` لوحده لا يقوم بعرض جميع التعديلات التي تمت من آخر commit - فهو يقوم بعرض فقط التعديلات التي لم تؤشر على أنها staged. ويمكن أن يسبب ذلك بعض الإرباك، حيث أنك إذا قمت بإضافة جميع التعديلات إلى قائمة staged فلن يقوم بعرض أي شي في خرج تنفيذه.
 
-For another example, if you stage the benchmarks.rb file and then edit it, you can use `git diff` to see the changes in the file that are staged and the changes that are unstaged:
+كمثال أيضاً، إذا قمنا بإضافة benchmarks.rb إلى قائمة staged ومن ثم قمنا بالتعديل عليه من جديد، يمكننا استخدام أمر `git diff` للحصول على لائحة بالتغييرات التي حصلت ولم تضف إلى قائمة staged كالتالي:
 
 	$ git add benchmarks.rb
 	$ echo '# test line' >> benchmarks.rb
@@ -245,12 +250,11 @@ For another example, if you stage the benchmarks.rb file and then edit it, you c
 	#
 	#	modified:   benchmarks.rb
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#
 	#	modified:   benchmarks.rb
 	#
 
-Now you can use `git diff` to see what is still unstaged
 
 	$ git diff 
 	diff --git a/benchmarks.rb b/benchmarks.rb
@@ -263,7 +267,7 @@ Now you can use `git diff` to see what is still unstaged
 	 ##pp Grit::GitRuby.cache_client.stats 
 	+# test line
 
-and `git diff --cached` to see what you’ve staged so far:
+وباستخدام `git diff --cached` نتمكن من رؤية ما تم تجهيزه للإضافة إلى عملية commit القادمة:
 
 	$ git diff --cached
 	diff --git a/benchmarks.rb b/benchmarks.rb
@@ -282,16 +286,15 @@ and `git diff --cached` to see what you’ve staged so far:
 	          log = git.commits('master', 15)
 	          log.size
 
-### Committing Your Changes ###
+### القيام بعملية (اعتماد) commit للتغيّرات ###
 
-Now that your staging area is set up the way you want it, you can commit your changes. Remember that anything that is still unstaged — any files you have created or modified that you haven’t run `git add` on since you edited them — won’t go into this commit. They will stay as modified files on your disk.
-In this case, the last time you ran `git status`, you saw that everything was staged, so you’re ready to commit your changes. The simplest way to commit is to type `git commit`:
+بعد اكمال تجهيز الملفات التي ترغب بإضافتها إلى النسخة snapshot الجديدة، يمكنك تنفيذ أمر commit ليتم اعتماد التعديلات التي أجريتها في سجل git. تذكر أنّ أي ملف لم يتم تجهيزه - سواء لم تقم بإضافته باستخدام الأمر git add بعد إنشاءه أو التعديل عليه - لن يدخل في هذه الإعتمادية، وستبقى على أنها ملفات تم تعديلها في مجلد العمل. أبسط طريقة لاعتماد التعديلات هي القيام بأمر `git commit` كالتالي:
 
 	$ git commit
 
-Doing so launches your editor of choice. (This is set by your shell’s `$EDITOR` environment variable — usually vim or emacs, although you can configure it with whatever you want using the `git config --global core.editor` command as you saw in Chapter 1). 
+تنفيذ هذا الأمر سيطلب منا إدخال رسالة عملية commit - عادة ما يتم فتح محرر النصوص المشار إليه بمتغير البيئة `$EDITOR`. يمكنك تهيئته عن طريق الأمر `git config --global core.editor` كما شاهدنا في الفصل الأول.
 
-The editor displays the following text (this example is a Vim screen):
+يقوم محرر النصوص بعرض هذه الشاشة (مثالنا باستخدام VIM):
 
 	# Please enter the commit message for your changes. Lines starting
 	# with '#' will be ignored, and an empty message aborts the commit.
@@ -306,27 +309,27 @@ The editor displays the following text (this example is a Vim screen):
 	~
 	".git/COMMIT_EDITMSG" 10L, 283C
 
-You can see that the default commit message contains the latest output of the `git status` command commented out and one empty line on top. You can remove these comments and type your commit message, or you can leave them there to help you remember what you’re committing. (For an even more explicit reminder of what you’ve modified, you can pass the `-v` option to `git commit`. Doing so also puts the diff of your change in the editor so you can see exactly what you did.) When you exit the editor, Git creates your commit with that commit message (with the comments and diff stripped out).
+يمكنك ملاحظة أن رسالة عملية commit تحوي على خرج آخر عملية `git status` على شكل تعليقات بالإضافة إلى سطر فارغ في بداية الملف. يمكنك إزالة هذه التعليقات، أو يمكنك تركها لمساعدتك بتذكر ما قمت باعتماد تعديلاته. يمكنك الحصول على معلومات أكثر تفصلياً إذا قمت بتمرير الخيار `-v` إلى الأمر `git commit`. حيث يقوم ذلك بإضافة خرج أمر `git diff` إلى رسالة commit على شكل تعليقات أيضاً. عند إغلاق المحرر يقوم git بإنشاء commit ويتجاهل التعليقات.
 
-Alternatively, you can type your commit message inline with the `commit` command by specifying it after a -m flag, like this:
+علماً أنّه يمكنك كتابة رسالة الاعتمادية مباشرة من خلال تمرير الخيار `-m` إلى الأمر `git commit` على الشكل التالي:
 
 	$ git commit -m "Story 182: Fix benchmarks for speed"
 	[master]: created 463dc4f: "Fix benchmarks for speed"
 	 2 files changed, 3 insertions(+), 0 deletions(-)
 	 create mode 100644 README
 
-Now you’ve created your first commit! You can see that the commit has given you some output about itself: which branch you committed to (master), what SHA-1 checksum the commit has (`463dc4f`), how many files were changed, and statistics about lines added and removed in the commit.
+مبروك، لقد قمت بعمل أول commit لك! يعطيك خرج العملية معلومات عنها: في أي فرع branch تم الإعتماد (هنا master)، ما قيمة هاش SHA-1 الخاصة بالعملية ( هنا `463dc4f`)، عدد الملفات التي تغيّرت، بالإضافة إلى إحصاءات حول الأسطر التي أضيفت وأزيلت في هذه العملية.
 
-Remember that the commit records the snapshot you set up in your staging area. Anything you didn’t stage is still sitting there modified; you can do another commit to add it to your history. Every time you perform a commit, you’re recording a snapshot of your project that you can revert to or compare to later.
+تذكر أنّ عملية commit تأخذ صورة عن الملفات في قائمة staged. أي شيء لم تقم بإضافته إلى هذه القائمة ما زال في مجلد العمل بحالة "معدل" modified؛ يمكنك القيام بإضافتهم من خلال عملية commit جديدة إلى التأريخ في git. نستنتج أنّه في كل عملية commit يقوم git بأخذ "صورة" snapshot عن المشروع يمكننا العودة لها لاحقاً أو مقارنتها أو غير ذلك..
 
-### Skipping the Staging Area ###
+### تجاوز منطقة التجهيز Staging Area ###
 
-Although it can be amazingly useful for crafting commits exactly how you want them, the staging area is sometimes a bit more complex than you need in your workflow. If you want to skip the staging area, Git provides a simple shortcut. Providing the `-a` option to the `git commit` command makes Git automatically stage every file that is already tracked before doing the commit, letting you skip the `git add` part:
+منطقة التجهيز تكون أحياناً معقدة أكثر مما تحتاج في عملك إلا أنّها مفيدة لعمل commits تماماً كما تودهم أن يكونوا. إذا أردت تجاوز منطقة التجهيز، يوفر git اختصاراً بسيطاً لذلك. باستخدام الأمر `git commit -a` يقوم git بإضافة الملفات المتتبعة إلى منطقة التجهيز بشكل تلقائي، كأنك قمت بعمل `git add`:
 
 	$ git status
 	# On branch master
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#
 	#	modified:   benchmarks.rb
 	#
@@ -334,25 +337,25 @@ Although it can be amazingly useful for crafting commits exactly how you want th
 	[master 83e38c7] added new benchmarks
 	 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Notice how you don’t have to run `git add` on the benchmarks.rb file in this case before you commit.
+لاحظ بأنك لاتحتاج إلى تنفيذ الأمر `git add` على ملف benchmark.rb قبل القيام بعملية commit.
 
-### Removing Files ###
+### إزالة الملفات ###
 
-To remove a file from Git, you have to remove it from your tracked files (more accurately, remove it from your staging area) and then commit. The `git rm` command does that and also removes the file from your working directory so you don’t see it as an untracked file next time around.
+لحذف ملف من git، يجب عليك إزالته من قائمة الملفات المتتبعة (وبشكل أدق، إزالته من منطقة التجهيز) ومن ثم القيام بعملية commit. الأمر `git rm` يقوم بعمل ذلك كما يقوم بحذف الملف من مجلد العمل الخاص بك لذا لن تراه بعد الآن في قائمة الملفات غير المتتبعة في المرة المقبلة.
 
-If you simply remove the file from your working directory, it shows up under the “Changed but not updated” (that is, _unstaged_) area of your `git status` output:
+إذا قمت بإزالة الملف من مجلد العمل، يظهر تحت بند "تعديلات غير مجهزة للاعتماد" (أي _unstaged_) من خرج الأمر `git status`:
 
 	$ rm grit.gemspec
 	$ git status
 	# On branch master
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add/rm <file>..." to update what will be committed)
 	#
 	#       deleted:    grit.gemspec
 	#
 
-Then, if you run `git rm`, it stages the file’s removal:
+فإذا قمت بتنفيذ أمر `git rm` يقوم بتجهيز عملية الحذف ليتم اعتمادها:
 
 	$ git rm grit.gemspec
 	rm 'grit.gemspec'
@@ -365,31 +368,31 @@ Then, if you run `git rm`, it stages the file’s removal:
 	#       deleted:    grit.gemspec
 	#
 
-The next time you commit, the file will be gone and no longer tracked. If you modified the file and added it to the index already, you must force the removal with the `-f` option. This is a safety feature to prevent accidental removal of data that hasn’t yet been recorded in a snapshot and that can’t be recovered from Git.
+وفي المرة المقبلة التي ستقوم فيها بعمل commit، سيتم إزالة الملف من قائمة التتبع. إذا قمت مسبقاً بتعديل الملف وإضفته إلى الفهرس، يجب عليه تنفيذ عملية الحذف قسرياً وذلك بإضافة الخيار `-f`. يتم اتباع هذه الطريقة بغية حماية البيانات من أية عمليات حذف "عرضية" لملفات لم يتم تسجيلها ضمن git ولايمكن استعادتها بعد ذلك.
 
-Another useful thing you may want to do is to keep the file in your working tree but remove it from your staging area. In other words, you may want to keep the file on your hard drive but not have Git track it anymore. This is particularly useful if you forgot to add something to your `.gitignore` file and accidentally added it, like a large log file or a bunch of `.a` compiled files. To do this, use the `--cached` option:
+أما إذا أردت إزالة الملف من منطقة التجهيز مع الحفاظ عليه في مجلد العمل (أي إزالته من تتبع git مع بقاءه على وسيطة التخزين) - وهو شيء مفيد إذا قمت بنسيان إضافة شيء ما إلى ملف `.gitignore` وأضفته عن طريق الخطأ ؛ كملف log كبير مثلاً - استخدم الخيار `--cached` مع الأمر `git rm` كالتالي:
 
 	$ git rm --cached readme.txt
 
-You can pass files, directories, and file-glob patterns to the `git rm` command. That means you can do things such as
+يمكنك تمرير أسماء ملفات، مجلدات، وأنماط glob للأمر `git rm`. وهذا يعني بأنه يمكننا عمل أشياء كالتالي:
 
 	$ git rm log/\*.log
 
-Note the backslash (`\`) in front of the `*`. This is necessary because Git does its own filename expansion in addition to your shell’s filename expansion. This command removes all files that have the `.log` extension in the `log/` directory. Or, you can do something like this:
+لاحظ الشرطة العكسية (`\`) قبل رمز النجمة `*`. إنّها ضرورية لأن git يقوم بعمل توسعة الأسماء الخاصة به بالإضافة إلى التوسعة الخاصة بسطر الأوامر. هذا الأمر يقوم بحذف كافة الملفات التي تملك اللاحقة `.log` في مجلد `/log`. أو يمكنك عمل شيء كالتالي:
 
 	$ git rm \*~
 
-This command removes all files that end with `~`.
+وهذا الأمر يقوم بحذف كافة الملفات المنتهية بالمحرف `~`.
 
-### Moving Files ###
+### نقل الملفات ###
 
-Unlike many other VCS systems, Git doesn’t explicitly track file movement. If you rename a file in Git, no metadata is stored in Git that tells it you renamed the file. However, Git is pretty smart about figuring that out after the fact — we’ll deal with detecting file movement a bit later.
+على خلاف أغلب أنظمة إدارة الإصدارات VCS الأخرى، لا يقوم git بتعقب حركة الملفات بشكل صريح. إذا قمت بإعادة تسمية ملف ضمن git، لايتم تسجيل أي بيانات وصفية metadata في git تقوم بأنك قمت بإعادة تسمية الملف. لكن، git ذكي جداً في استعياب ذلك - وسنقوم بمناقشة الأمر بعد قليل.
 
-Thus it’s a bit confusing that Git has a `mv` command. If you want to rename a file in Git, you can run something like
+إذا أردت القيام بإعادة تسمية ملف يمكنك استخدام أمر `mv` في git كالتالي:
 
 	$ git mv file_from file_to
 
-and it works fine. In fact, if you run something like this and look at the status, you’ll see that Git considers it a renamed file:
+إذا قمنا بتنفيذ الأمر والنظر إلى خرج أمر `git status`:
 
 	$ git mv README.txt README
 	$ git status
@@ -402,23 +405,23 @@ and it works fine. In fact, if you run something like this and look at the statu
 	#       renamed:    README.txt -> README
 	#
 
-However, this is equivalent to running something like this:
+وهو مكافئ للقيام بتنفيذ الأوامر التالي على التسلسل:
 
 	$ mv README.txt README
 	$ git rm README.txt
 	$ git add README
 
-Git figures out that it’s a rename implicitly, so it doesn’t matter if you rename a file that way or with the `mv` command. The only real difference is that `mv` is one command instead of three — it’s a convenience function. More important, you can use any tool you like to rename a file, and address the add/rm later, before you commit.
+يدرك git بأنك قمت بعملية إعادة تسمية، لذا فالإختلاف الوحيد بين الطريقتين هو أنّ `git mv` عبارة عن أمر واحد، وليس ثلاثة أوامر. يمكن الاستفادة من هذه الخاصة باستخدام أية أدوات للقيام بعمليات إعادة التسمية، واستخدام add/rm قبل القيام بعملية commit.
 
-## Viewing the Commit History ##
+## مراجعة تأريخ عمليات commit ##
 
-After you have created several commits, or if you have cloned a repository with an existing commit history, you’ll probably want to look back to see what has happened. The most basic and powerful tool to do this is the `git log` command.
+بعد قيامك بعدد من عمليات الاعتماد commit، أو استنساخ repository بسجل تأريخ، ربما ستود إلقاء نظرة على ما جرى. أبسط وأقوى أداة لعمل ذلك هي الأمر `git log`.
 
-These examples use a very simple project called simplegit that I often use for demonstrations. To get the project, run 
+هذه الأمثلة تستخدم مشروع بسيط جداً يدعى simplegit أقوم باستخدامه في عمليات العرض بأغلب الأحيان. للحصول على المشروع قم باستنساخه عن موقع github كالتالي:
 
 	git clone git://github.com/schacon/simplegit-progit.git
 
-When you run `git log` in this project, you should get output that looks something like this:
+عندما تقوم بعمل `git log` ضمن المشروع، سيظهر لديك خرج مشابه للتالي:
 
 	$ git log
 	commit ca82a6dff817ec66f44342007202690a93763949
@@ -439,11 +442,11 @@ When you run `git log` in this project, you should get output that looks somethi
 
 	    first commit
 
-By default, with no arguments, `git log` lists the commits made in that repository in reverse chronological order. That is, the most recent commits show up first. As you can see, this command lists each commit with its SHA-1 checksum, the author’s name and e-mail, the date written, and the commit message.
+بتنفيذ الأمر بدون بارمترات، يقوم git بعرض عمليات commit في repository بترتيب زمني معكوس - من الأحدث إلى الأقدم. كما يقوم بعرض بجانب كل commit هاش SHA-1 checksum الخاص بها، اسم وبريد الكاتب الإلكتروني، تاريخ الاعتماد، ورسالة الاعتماد.
 
-A huge number and variety of options to the `git log` command are available to show you exactly what you’re looking for. Here, we’ll show you some of the most-used options.
+يمكن إرفاق الأمر `git log` بعدد كبير من الخيارات للحصول على المعلومات التي نريدها بالضبط.. تجد في الأسفل مثالاً عن أكثر الخيارات استخداماً.
 
-One of the more helpful options is `-p`, which shows the diff introduced in each commit. You can also use `-2`, which limits the output to only the last two entries:
+أحد أهم الخيارات هو `-p`، والذي يقوم بإظهار الفوارق المستحدثة بين عمليات commit المختلفة. يمكن أيضاً استخدام الخيار `-2` ليحد خرج النتيجة إلى آخر عمليتين:
 
 	$ git log –p -2
 	commit ca82a6dff817ec66f44342007202690a93763949
@@ -483,8 +486,7 @@ One of the more helpful options is `-p`, which shows the diff introduced in each
 	-end
 	\ No newline at end of file
 
-This option displays the same information but with a diff directly following each entry. This is very helpful for code review or to quickly browse what happened during a series of commits that a collaborator has added.
-You can also use a series of summarizing options with `git log`. For example, if you want to see some abbreviated stats for each commit, you can use the `--stat` option:
+هذا الخيار يعرض نفس المعلومات بالإضافة خرج diff بعده مباشرة. فهو مهم جداً من أجل مراجعة الكود واستعراض ما الذي تغير بشكل سريع ضمن سلسلة من عمليات commit. يمكنك أيضاً استخدام خيارات للتلخيص مع أمر `git log`. على سبيل المثال، إذا أردت رؤية بعض الإحصاءات المختصرة لكل commit، يمكنك استخدام الخيار `stat`:
 
 	$ git log --stat 
 	commit ca82a6dff817ec66f44342007202690a93763949
@@ -516,43 +518,43 @@ You can also use a series of summarizing options with `git log`. For example, if
 	 lib/simplegit.rb |   25 +++++++++++++++++++++++++
 	 3 files changed, 54 insertions(+), 0 deletions(-)
 
-As you can see, the `--stat` option prints below each commit entry a list of modified files, how many files were changed, and how many lines in those files were added and removed. It also puts a summary of the information at the end.
-Another really useful option is `--pretty`. This option changes the log output to formats other than the default. A few prebuilt options are available for you to use. The oneline option prints each commit on a single line, which is useful if you’re looking at a lot of commits. In addition, the `short`, `full`, and `fuller` options show the output in roughly the same format but with less or more information, respectively:
+كما ترى باستخدام الخيار `--stat` يتم عرض قائمة من الملفات المعدلة، عدد الملفات التي تغيرت، وعدد الأسطر التي أضيفت أو أزيلت. كما يضع ملخصاً للمعلومات في النهاية.
+يوجد خيار مفيد آخر وهو `--pretty`. هذا الخيار يغير خرج السل إلى صيغ غير الافتراضية. يوجد بعضها مركب مسبقاً. مثلاً `oneline` يقوم بطباعة كل commit على سطر لوحدها، وهذا أمر مفيد في حال كنت تنظر إلى العديد من عمليات commit. بالإضافة إلى `short`، `full` و `fuller` والتي تعرض خرجاً تقريباً بنفس الصيغة مع معلومات أكثر أو أقل:
 
 	$ git log --pretty=oneline
 	ca82a6dff817ec66f44342007202690a93763949 changed the version number
 	085bb3bcb608e1e8451d4b2432f8ecbe6306e7e7 removed unnecessary test code
 	a11bef06a3f659402fe7563abf99ad00de2209e6 first commit
 
-The most interesting option is `format`, which allows you to specify your own log output format. This is especially useful when you’re generating output for machine parsing — because you specify the format explicitly, you know it won’t change with updates to Git:
+أكثر الخيارات أهمية هو `format`، والذي يسمح لك بتحديد صيغة الخرج بشكل صريح بما يتناسب مع إعرابها آلياً - حيث أنك تعرف أنّه لن يتغير عند التحديث إلى git:
 
 	$ git log --pretty=format:"%h - %an, %ar : %s"
 	ca82a6d - Scott Chacon, 11 months ago : changed the version number
 	085bb3b - Scott Chacon, 11 months ago : removed unnecessary test code
 	a11bef0 - Scott Chacon, 11 months ago : first commit
 
-Table 2-1 lists some of the more useful options that format takes.
+الجدول 2-1 يعرض بعض الخيارات المفيدة التي يمكن إضافتها إلى الصيغة.
 
-	Option	Description of Output
-	%H	Commit hash
-	%h	Abbreviated commit hash
-	%T	Tree hash
-	%t	Abbreviated tree hash
-	%P	Parent hashes
-	%p	Abbreviated parent hashes
-	%an	Author name
-	%ae	Author e-mail
-	%ad	Author date (format respects the –date= option)
-	%ar	Author date, relative
-	%cn	Committer name
-	%ce	Committer email
-	%cd	Committer date
-	%cr	Committer date, relative
-	%s	Subject
+	الخيار	وصف الخرج
+	%H	Commit هاش
+	%h	الهاش الاعتمادي المختصر
+	%T	هاش الشجرة
+	%t	هاش الشجرة المختصر
+	%P	هاشات الوالد
+	%p	هاشات الوالد المختصرة
+	%an	اسم الكاتب
+	%ae	بريد الكاتب الإلكتروني
+	%ad	تاريخ الكاتب (يراعي الصيغة –date= option)
+	%ar	تاريخ الكاتب - نسبياً
+	%cn	اسم منفذ الاعتماد
+	%ce	بريد منفذ الاعتماد الإلكتروني
+	%cd	تاريخ منفذ الاعتماد
+	%cr	تاريخ منفذ الاعتماد - نسبياً
+	%s	العنوان
 
-You may be wondering what the difference is between _author_ and _committer_. The author is the person who originally wrote the work, whereas the committer is the person who last applied the work. So, if you send in a patch to a project and one of the core members applies the patch, both of you get credit — you as the author and the core member as the committer. We’ll cover this distinction a bit more in Chapter 5.
+قد تتسائل عن الاختلاف بين _الكاتب_ AUTHOR و _منفذ الاعتماد_ COMMITTER. الكاتب هو الشخص الذي كتب العمل بداية، بينما منفذ الاعتماد هو آخر شخص طبق العمل. لذا، إذا أرسلت باتشاً إلى مشروع وأحد المطورين الرئيسين قام بتطبيق الباتش، تأخذان كلاكما الاعتمادية - أنت ككاتب وهو كمنفذ اعتماد.
 
-The oneline and format options are particularly useful with another `log` option called `--graph`. This option adds a nice little ASCII graph showing your branch and merge history, which we can see our copy of the Grit project repository:
+وتكون هذه الخيارات مفيدة أكثر بالترافق مع الخيار `--graph`. حيث يضيف هذا الأمر غراف ASCII بسيط يوضح تأريخ الأفرع و الدمج، لاحظ التالي:
 
 	$ git log --pretty=format:"%h %s" --graph
 	* 2d3acf9 ignore errors from SIGCHLD on trap
@@ -566,43 +568,43 @@ The oneline and format options are particularly useful with another `log` option
 	* d6016bc require time for xmlschema
 	*  11d191e Merge branch 'defunkt' into local
 
-Those are only some simple output-formatting options to `git log` — there are many more. Table 2-2 lists the options we’ve covered so far and some other common formatting options that may be useful, along with how they change the output of the log command.
+يوجد مجموعة من الخيارات البسيطة مع أمر `git log`. يوضح الجدول 2-2 قائمة من الخيارات التي قمنا بتغطيتها حتى الآن وبعض صيغ التنسيق الشائعة والتي قد تكون مفيدة، وبجانبها شرح مبسط عن التغيير الذي تجريه على الخرج.
 
-	Option	Description
-	-p	Show the patch introduced with each commit.
-	--stat	Show statistics for files modified in each commit.
+	الخيار	الوصف
+	-p	يظهر الباتش المدخل مع كل عملية commit.
+	--stat	يظهر إحصاءات حول التعديلات التي حصلت على الملفات مع كل عملية commit.
 	--shortstat	Display only the changed/insertions/deletions line from the --stat command.
-	--name-only	Show the list of files modified after the commit information.
-	--name-status	Show the list of files affected with added/modified/deleted information as well.
-	--abbrev-commit	Show only the first few characters of the SHA-1 checksum instead of all 40.
+	--name-only	يظهر قائمة الملفات المعدلة.
+	--name-status	يظهر قائمة الملفات المعدلة عن طريق الإضافة والحذف وغير ذلك.
+	--abbrev-commit	يظهر أول مجموعة من هاش SHA-1 بدلاً عن كامل الأحرف 40.
 	--relative-date	Display the date in a relative format (for example, “2 weeks ago”) instead of using the full date format.
-	--graph	Display an ASCII graph of the branch and merge history beside the log output.
+	--graph	عرض غراف ASCII مع الخرج يظهر عمليات التفريع و الدمج.
 	--pretty	Show commits in an alternate format. Options include oneline, short, full, fuller, and format (where you specify your own format).
 
-### Limiting Log Output ###
+### تحديد خرج السجل ###
 
-In addition to output-formatting options, git log takes a number of useful limiting options — that is, options that let you show only a subset of commits. You’ve seen one such option already — the `-2` option, which show only the last two commits. In fact, you can do `-<n>`, where `n` is any integer to show the last `n` commits. In reality, you’re unlikely to use that often, because Git by default pipes all output through a pager so you see only one page of log output at a time.
+بالإضافة تحديد شكل الخرج، يسمح git بأخذ مجموعة جزئية فقط من الخرج. وقد قمت بمشاهدة ذلك مسبقاً - الخيار `-2` المستخدم لعرض آخر عمليتي commit. في الواقع يمكنك استخدام `-<n>` حيث `n` هي عدد صحيح لعرض آخر `n` عملية commit. في الحقيقة، لن تستخدمها على الغالب، لأن git يقوم بتمرير كامل الخرج لبرنامج تصفح لتتمكن من تصفح عمليات commit صفحة صفحة.
 
-However, the time-limiting options such as `--since` and `--until` are very useful. For example, this command gets the list of commits made in the last two weeks:
+من الخيارات الهامة جداً، المحددات الزمنية مثل `--since` و `--until`. على سبيل المثال، هذا الأمر يعطيك قائمة بعمليات commit التي حصلت في آخر أسبوعين:
 
 	$ git log --since=2.weeks
 
-This command works with lots of formats — you can specify a specific date (“2008-01-15”) or a relative date such as “2 years 1 day 3 minutes ago”.
+ويعمل هذا الأمر مع أنواع كثيرة من الصيغ - يمكنك تحديد تاريخ محدد ("2008-01-15") أو تاريخ نسبي مثل "2 years 1 day 3 minutes ago".
 
-You can also filter the list to commits that match some search criteria. The `--author` option allows you to filter on a specific author, and the `--grep` option lets you search for keywords in the commit messages. (Note that if you want to specify both author and grep options, you have to add `--all-match` or the command will match commits with either.)
+يكطمط أيضاً تصفية قائمة عمليات commit من خلال محددات البحث. مثلاً خيار `--author` يقوم بتصفية النتائج وفق كاتب محدد، و `--grep` يقوم بالفلترة عن طريق كلمة مفتاحية. (لاحظ أنّه إذا قمت بإضافة  خياراي author و grep، يجب عليك إضافة الخيار `--all-match` أو سيقوم git بعمل مطابقة مع أحدهما فقط).
 
-The last really useful option to pass to `git log` as a filter is a path. If you specify a directory or file name, you can limit the log output to commits that introduced a change to those files. This is always the last option and is generally preceded by double dashes (`--`) to separate the paths from the options.
+آخر الخيارات الهامة التي يمكن تمريرها إلى الأمر `git log` كمصناف هي المسار. إذا قمت بتحديد مجلد أو اسم ملف، يمكنك تحديد الخرج إلى عمليات commit التي آثرت في هذا المسار. ودائماً ما يكون آخر خيار  يوضع في `log` ويسبق بداشين double dashes (`--`) ليفصل المسارات عن الخيارات.
 
-In Table 2-3 we’ll list these and a few other common options for your reference.
+في الجدول 2-3 - نعرض الخيارات التي يمكن إضافتها مع log.
 
-	Option	Description
-	-(n)	Show only the last n commits
-	--since, --after	Limit the commits to those made after the specified date.
-	--until, --before	Limit the commits to those made before the specified date.
-	--author	Only show commits in which the author entry matches the specified string.
-	--committer	Only show commits in which the committer entry matches the specified string.
+	خيار	وصف
+	-(n)	يظهر آن n عملية commit.
+	--since, --after	تحديد عمليات commit بعد التاريخ الذي يتلوها.
+	--until, --before	تحديد عمليات commit حتى التاريخ الذي يتلوها.
+	--author	فقط أظهر عمليات commit التابعة لهذا الكاتب.
+	--committer	فقط أظهر عمليات commit التابعة لهذا المعتمد.
 
-For example, if you want to see which commits modifying test files in the Git source code history were committed by Junio Hamano and were not merges in the month of October 2008, you can run something like this:
+على سبيل المثال، إذا أردت رؤية أي عمليات commit عدلت ملفات الاختبار في تأريخ الكود المصدري والتي قام Junio Hamano بعملها ولم يتم دمجها في شهر أوكتوبر 2008، يمكن كتابة هذا الأمر:
 
 	$ git log --pretty="%h - %s" --author=gitster --since="2008-10-01" \
 	   --before="2008-11-01" --no-merges -- t/
@@ -613,7 +615,7 @@ For example, if you want to see which commits modifying test files in the Git so
 	51a94af - Fix "checkout --track -b newbranch" on detac
 	b0ad11e - pull: allow "git pull origin $something:$cur
 
-Of the nearly 20,000 commits in the Git source code history, this command shows the 6 that match those criteria.
+من بين 20 ألف عملية commit تقريباً في تأريخ git الخاص بهذا الكود المصدري، أظهر الأمر فقط عمليات الاعتماد الستة المطابقة لمحددات البحث.
 
 ### Using a GUI to Visualize History ###
 
@@ -671,7 +673,7 @@ Right below the “Changes to be committed” text, it says use `git reset HEAD 
 	#
 	#       modified:   README.txt
 	#
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#   (use "git checkout -- <file>..." to discard changes in working directory)
 	#
@@ -684,7 +686,7 @@ The command is a bit strange, but it works. The benchmarks.rb file is modified b
 
 What if you realize that you don’t want to keep your changes to the benchmarks.rb file? How can you easily unmodify it — revert it back to what it looked like when you last committed (or initially cloned, or however you got it into your working directory)? Luckily, `git status` tells you how to do that, too. In the last example output, the unstaged area looks like this:
 
-	# Changed but not updated:
+	# Changes not staged for commit:
 	#   (use "git add <file>..." to update what will be committed)
 	#   (use "git checkout -- <file>..." to discard changes in working directory)
 	#
@@ -1115,7 +1117,7 @@ This way, you can see the last commit easily:
 
 As you can tell, Git simply replaces the new command with whatever you alias it for. However, maybe you want to run an external command, rather than a Git subcommand. In that case, you start the command with a `!` character. This is useful if you write your own tools that work with a Git repository. We can demonstrate by aliasing `git visual` to run `gitk`:
 
-	$ git config --global alias.visual "!gitk"
+	$ git config --global alias.visual '!gitk'
 
 ## Summary ##
 

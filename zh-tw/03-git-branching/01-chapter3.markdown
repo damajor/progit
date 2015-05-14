@@ -1,418 +1,424 @@
-# Git Branching #
+# Git 分支 #
 
-Nearly every VCS has some form of branching support. Branching means you diverge from the main line of development and continue to do work without messing with that main line. In many VCS tools, this is a somewhat expensive process, often requiring you to create a new copy of your source code directory, which can take a long time for large projects.
+幾乎每一種版本控制系統都以某種形式支援分支。使用分支意味著你可以從開發主線上分離開來，然後在不影響主線的同時繼續工作。在很多版本控制系統中，這是個昂貴的過程，常常需要創建一個原始程式碼目錄的完整副本，對大型項目來說會花費很長時間。
 
-Some people refer to the branching model in Git as its “killer feature,” and it certainly sets Git apart in the VCS community. Why is it so special? The way Git branches is incredibly lightweight, making branching operations nearly instantaneous and switching back and forth between branches generally just as fast. Unlike many other VCSs, Git encourages a workflow that branches and merges often, even multiple times in a day. Understanding and mastering this feature gives you a powerful and unique tool and can literally change the way that you develop.
+有人把 Git 的分支模型稱為“必殺技特性”，而正是因為它，將 Git 從版本控制系統家族裡區分出來。Git 有何特別之處呢？Git 的分支可謂是難以置信的羽量級，它的新建操作幾乎可以在瞬間完成，並且在不同分支間切換起來也差不多一樣快。和許多其他版本控制系統不同，Git 鼓勵在工作流程中頻繁使用分支與合併，哪怕一天之內進行許多次都沒有關係。理解分支的概念並熟練運用後，你才會意識到為什麼 Git 是一個如此強大而獨特的工具，並從此真正改變你的開發方式。
 
-## What a Branch Is ##
+## 何謂分支 ##
 
-To really understand the way Git does branching, we need to take a step back and examine how Git stores its data. As you may remember from Chapter 1, Git doesn’t store data as a series of changesets or deltas, but instead as a series of snapshots.
+為了理解 Git 分支的實現方式，我們需要回顧一下 Git 是如何儲存資料的。或許你還記得第一章的內容，Git 保存的不是檔差異或者變化量，而只是一系列檔快照。
 
-When you commit in Git, Git stores a commit object that contains a pointer to the snapshot of the content you staged, the author and message metadata, and zero or more pointers to the commit or commits that were the direct parents of this commit: zero parents for the first commit, one parent for a normal commit, and multiple parents for a commit that results from a merge of two or more branches.
+在 Git 中提交時，會保存一個提交（commit）物件，該物件包含一個指向暫存內容快照的指標，包含本次提交的作者等相關附屬資訊，包含零個或多個指向該提交物件的父物件指標：首次提交是沒有直接祖先的，普通提交有一個祖先，由兩個或多個分支合併產生的提交則有多個祖先。
 
-To visualize this, let’s assume that you have a directory containing three files, and you stage them all and commit. Staging the files checksums each one (the SHA-1 hash we mentioned in Chapter 1), stores that version of the file in the Git repository (Git refers to them as blobs), and adds that checksum to the staging area:
+為直觀起見，我們假設在工作目錄中有三個檔，準備將它們暫存後提交。暫存操作會對每一個檔計算校驗和（即第一章中提到的 SHA-1 雜湊字串），然後把當前版本的檔快照保存到 Git 倉庫中（Git 使用 blob 類型的物件存儲這些快照），並將校驗和加入暫存區域：
 
 	$ git add README test.rb LICENSE
 	$ git commit -m 'initial commit of my project'
 
-When you create the commit by running `git commit`, Git checksums each subdirectory (in this case, just the root project directory) and stores those tree objects in the Git repository. Git then creates a commit object that has the metadata and a pointer to the root project tree so it can re-create that snapshot when needed.
+當使用 `git commit` 新建一個提交物件前，Git 會先計算每一個子目錄（本例中就是專案根目錄）的校驗和，然後在 Git 倉庫中將這些目錄保存為樹（tree）物件。之後 Git 創建的提交物件，除了包含相關提交資訊以外，還包含著指向這個樹物件（專案根目錄）的指標，如此它就可以在將來需要的時候，重現此次快照的內容了。
 
-Your Git repository now contains five objects: one blob for the contents of each of your three files, one tree that lists the contents of the directory and specifies which file names are stored as which blobs, and one commit with the pointer to that root tree and all the commit metadata. Conceptually, the data in your Git repository looks something like Figure 3-1.
+現在，Git 倉庫中有五個物件：三個表示檔快照內容的 blob 物件；一個記錄著目錄樹內容及其中各個檔對應 blob 物件索引的 tree 物件；以及一個包含指向 tree 物件（根目錄）的索引和其他提交資訊中繼資料的 commit 物件。概念上來說，倉庫中的各個物件保存的資料和相互關係看起來如圖 3-1 所示：
 
-Insert 18333fig0301.png 
-Figure 3-1. Single commit repository data.
+Insert 18333fig0301.png
+圖 3-1. 單個提交物件在倉庫中的資料結構
 
-If you make some changes and commit again, the next commit stores a pointer to the commit that came immediately before it. After two more commits, your history might look something like Figure 3-2.
+作些修改後再次提交，那麼這次的提交物件會包含一個指向上次提交物件的指標（譯注：即下圖中的 parent 物件）。兩次提交後，倉庫歷史會變成圖 3-2 的樣子：
 
-Insert 18333fig0302.png 
-Figure 3-2. Git object data for multiple commits.
+Insert 18333fig0302.png
+圖 3-2. 多個提交物件之間的連結關係
 
-A branch in Git is simply a lightweight movable pointer to one of these commits. The default branch name in Git is master. As you initially make commits, you’re given a master branch that points to the last commit you made. Every time you commit, it moves forward automatically.
+現在來談分支。Git 中的分支，其實本質上僅僅是個指向 commit 物件的可變指標。Git 會使用 master 作為分支的預設名字。在若干次提交後，你其實已經有了一個指向最後一次提交物件的 master 分支，它在每次提交的時候都會自動向前移動。
 
-Insert 18333fig0303.png 
-Figure 3-3. Branch pointing into the commit data’s history.
+Insert 18333fig0303.png
+圖 3-3. 分支其實就是從某個提交物件往回看的歷史
 
-What happens if you create a new branch? Well, doing so creates a new pointer for you to move around. Let’s say you create a new branch called testing. You do this with the `git branch` command:
+那麼，Git 又是如何創建一個新的分支的呢？答案很簡單，創建一個新的分支指標。比如新建一個 testing 分支，可以使用 `git branch` 命令：
 
 	$ git branch testing
 
-This creates a new pointer at the same commit you’re currently on (see Figure 3-4).
+這會在當前 commit 物件上新建一個分支指標（見圖 3-4）。
 
-Insert 18333fig0304.png 
-Figure 3-4. Multiple branches pointing into the commit’s data history.
+Insert 18333fig0304.png
+圖 3-4. 多個分支指向提交資料的歷史
 
-How does Git know what branch you’re currently on? It keeps a special pointer called HEAD. Note that this is a lot different than the concept of HEAD in other VCSs you may be used to, such as Subversion or CVS. In Git, this is a pointer to the local branch you’re currently on. In this case, you’re still on master. The git branch command only created a new branch — it didn’t switch to that branch (see Figure 3-5).
+那麼，Git 是如何知道你當前在哪個分支上工作的呢？其實答案也很簡單，它保存著一個名為 HEAD 的特別指標。請注意它和你熟知的許多其他版本控制系統（比如 Subversion 或 CVS）裡的 HEAD 概念大不相同。在 Git 中，它是一個指向你正在工作中的本地分支的指標（譯注：將 HEAD 想像為當前分支的別名。）。運行 `git branch` 命令，僅僅是建立了一個新的分支，但不會自動切換到這個分支中去，所以在這個例子中，我們依然還在 master 分支裡工作（參考圖 3-5）。
 
-Insert 18333fig0305.png 
-Figure 3-5. HEAD file pointing to the branch you’re on.
+Insert 18333fig0305.png
+圖 3-5. HEAD 指向當前所在的分支
 
-To switch to an existing branch, you run the `git checkout` command. Let’s switch to the new testing branch:
+要切換到其他分支，可以執行 `git checkout` 命令。我們現在轉換到新建的 testing 分支：
 
 	$ git checkout testing
 
-This moves HEAD to point to the testing branch (see Figure 3-6).
+這樣 HEAD 就指向了 testing 分支（見圖3-6）。
 
 Insert 18333fig0306.png
-Figure 3-6. HEAD points to another branch when you switch branches.
+圖 3-6. HEAD 在你轉換分支時指向新的分支
 
-What is the significance of that? Well, let’s do another commit:
+這樣的實現方式會給我們帶來什麼好處呢？好吧，現在不妨再提交一次：
 
 	$ vim test.rb
 	$ git commit -a -m 'made a change'
 
-Figure 3-7 illustrates the result.
+圖 3-7 展示了提交後的結果。
 
-Insert 18333fig0307.png 
-Figure 3-7. The branch that HEAD points to moves forward with each commit.
+Insert 18333fig0307.png
+圖 3-7. 每次提交後 HEAD 隨著分支一起向前移動
 
-This is interesting, because now your testing branch has moved forward, but your master branch still points to the commit you were on when you ran `git checkout` to switch branches. Let’s switch back to the master branch:
+非常有趣，現在 testing 分支向前移動了一格，而 master 分支仍然指向原先 `git checkout` 時所在的 commit 物件。現在我們回到 master 分支看看：
 
 	$ git checkout master
 
-Figure 3-8 shows the result.
+圖 3-8 顯示了結果。
 
-Insert 18333fig0308.png 
-Figure 3-8. HEAD moves to another branch on a checkout.
+Insert 18333fig0308.png
+圖 3-8. HEAD 在一次 checkout 之後移動到了另一個分支
 
-That command did two things. It moved the HEAD pointer back to point to the master branch, and it reverted the files in your working directory back to the snapshot that master points to. This also means the changes you make from this point forward will diverge from an older version of the project. It essentially rewinds the work you’ve done in your testing branch temporarily so you can go in a different direction.
+這條命令做了兩件事。它把 HEAD 指標移回到 master 分支，並把工作目錄中的檔換成了 master 分支所指向的快照內容。也就是說，現在開始所做的改動，將始於本專案中一個較老的版本。它的主要作用是將 testing 分支裡作出的修改暫時取消，這樣你就可以向另一個方向進行開發。
 
-Let’s make a few changes and commit again:
+我們作些修改後再次提交：
 
 	$ vim test.rb
 	$ git commit -a -m 'made other changes'
 
-Now your project history has diverged (see Figure 3-9). You created and switched to a branch, did some work on it, and then switched back to your main branch and did other work. Both of those changes are isolated in separate branches: you can switch back and forth between the branches and merge them together when you’re ready. And you did all that with simple `branch` and `checkout` commands.
+現在我們的項目提交歷史產生了分叉（如圖 3-9 所示），因為剛才我們創建了一個分支，轉換到其中進行了一些工作，然後又回到原來的主分支進行了另外一些工作。這些改變分別孤立在不同的分支裡：我們可以在不同分支裡反復切換，並在時機成熟時把它們合併到一起。而所有這些工作，僅僅需要 `branch` 和 `checkout` 這兩條命令就可以完成。
 
-Insert 18333fig0309.png 
-Figure 3-9. The branch histories have diverged.
+Insert 18333fig0309.png
+圖 3-9. 不同流向的分支歷史
 
-Because a branch in Git is in actuality a simple file that contains the 40 character SHA-1 checksum of the commit it points to, branches are cheap to create and destroy. Creating a new branch is as quick and simple as writing 41 bytes to a file (40 characters and a newline).
+由於 Git 中的分支實際上僅是一個包含所指物件校驗和（40 個字元長度 SHA-1 字串）的檔，所以創建和銷毀一個分支就變得非常廉價。說白了，新建一個分支就是向一個檔寫入 41 個位元組（外加一個分行符號）那麼簡單，當然也就很快了。
 
-This is in sharp contrast to the way most VCS tools branch, which involves copying all of the project’s files into a second directory. This can take several seconds or even minutes, depending on the size of the project, whereas in Git the process is always instantaneous. Also, because we’re recording the parents when we commit, finding a proper merge base for merging is automatically done for us and is generally very easy to do. These features help encourage developers to create and use branches often.
+這和大多數版本控制系統形成了鮮明對比，它們管理分支大多採取備份所有專案檔案到特定目錄的方式，所以根據專案檔案數量和大小不同，可能花費的時間也會有相當大的差別，快則幾秒，慢則數分鐘。而 Git 的實現與項目複雜度無關，它永遠可以在幾毫秒的時間內完成分支的創建和切換。同時，因為每次提交時都記錄了祖先資訊（譯注：即 `parent` 物件），將來要合併分支時，尋找恰當的合併基礎（譯注：即共同祖先）的工作其實已經自然而然地擺在那裡了，所以實現起來非常容易。Git 鼓勵開發者頻繁使用分支，正是因為有著這些特性作保障。
 
-Let’s see why you should do so.
+接下來看看，我們為什麼應該頻繁使用分支。
 
-## Basic Branching and Merging ##
+## 分支的新建與合併 ##
 
-Let’s go through a simple example of branching and merging with a workflow that you might use in the real world. You’ll follow these steps:
+現在讓我們來看一個簡單的分支與合併的例子，實際工作中大體也會用到這樣的工作流程：
 
-1.	Do work on a web site.
-2.	Create a branch for a new story you’re working on.
-3.	Do some work in that branch.
+1. 開發某個網站。
+2. 為實現某個新的需求，創建一個分支。
+3. 在這個分支上開展工作。
 
-At this stage, you’ll receive a call that another issue is critical and you need a hotfix. You’ll do the following:
+假設此時，你突然接到一個電話說有個很嚴重的問題需要緊急修補，那麼可以按照下面的方式處理：
 
-1.	Revert back to your production branch.
-2.	Create a branch to add the hotfix.
-3.	After it’s tested, merge the hotfix branch, and push to production.
-4.	Switch back to your original story and continue working.
+1. 返回到原先已經發佈到生產伺服器上的分支。
+2. 為這次緊急修補建立一個新分支，並在其中修復問題。
+3. 通過測試後，回到生產伺服器所在的分支，將修補分支合併進來，然後再推送到生產伺服器上。
+4. 切換到之前實現新需求的分支，繼續工作。
 
-### Basic Branching ###
+### 分支的新建與切換 ###
 
-First, let’s say you’re working on your project and have a couple of commits already (see Figure 3-10).
+首先，我們假設你正在專案中愉快地工作，並且已經提交了幾次更新（見圖 3-10）。
 
-Insert 18333fig0310.png 
-Figure 3-10. A short and simple commit history.
+Insert 18333fig0310.png
+圖 3-10. 一個簡短的提交歷史
 
-You’ve decided that you’re going to work on issue #53 in whatever issue-tracking system your company uses. To be clear, Git isn’t tied into any particular issue-tracking system; but because issue #53 is a focused topic that you want to work on, you’ll create a new branch in which to work. To create a branch and switch to it at the same time, you can run the `git checkout` command with the `-b` switch:
+現在，你決定要修補問題追蹤系統上的 #53 問題。順帶說明下，Git 並不同任何特定的問題追蹤系統打交道。這裡為了說明要解決的問題，才把新建的分支取名為 iss53。要新建並切換到該分支，運行 `git checkout` 並加上 `-b` 參數：
 
 	$ git checkout -b iss53
-	Switched to a new branch "iss53"
+	Switched to a new branch 'iss53'
 
-This is shorthand for:
+這相當於執行下面這兩條命令：
 
 	$ git branch iss53
 	$ git checkout iss53
 
-Figure 3-11 illustrates the result.
+圖 3-11 示意該命令的執行結果。
 
-Insert 18333fig0311.png 
-Figure 3-11. Creating a new branch pointer.
+Insert 18333fig0311.png
+圖 3-11. 創建了一個新分支的指標
 
-You work on your web site and do some commits. Doing so moves the `iss53` branch forward, because you have it checked out (that is, your HEAD is pointing to it; see Figure 3-12):
+接著你開始嘗試修復問題，在提交了若干次更新後，`iss53` 分支的指標也會隨著向前推進，因為它就是當前分支（換句話說，當前的 `HEAD` 指標正指向 `iss53`，見圖 3-12）：
 
 	$ vim index.html
 	$ git commit -a -m 'added a new footer [issue 53]'
 
-Insert 18333fig0312.png 
-Figure 3-12. The iss53 branch has moved forward with your work.
+Insert 18333fig0312.png
+圖 3-12. iss53 分支隨工作進展向前推進
 
-Now you get the call that there is an issue with the web site, and you need to fix it immediately. With Git, you don’t have to deploy your fix along with the `iss53` changes you’ve made, and you don’t have to put a lot of effort into reverting those changes before you can work on applying your fix to what is in production. All you have to do is switch back to your master branch.
+現在你就接到了那個網站問題的緊急電話，需要馬上修補。有了 Git ，我們就不需要同時發佈這個補丁和 `iss53` 裡作出的修改，也不需要在創建和發佈該補丁到伺服器之前花費大力氣來復原這些修改。唯一需要的僅僅是切換回 `master` 分支。
 
-However, before you do that, note that if your working directory or staging area has uncommitted changes that conflict with the branch you’re checking out, Git won’t let you switch branches. It’s best to have a clean working state when you switch branches. There are ways to get around this (namely, stashing and commit amending) that we’ll cover later. For now, you’ve committed all your changes, so you can switch back to your master branch:
+不過在此之前，留心你的暫存區或者工作目錄裡，那些還沒有提交的修改，它會和你即將檢出的分支產生衝突從而阻止 Git 為你切換分支。切換分支的時候最好保持一個清潔的工作區域。稍後會介紹幾個繞過這種問題的辦法（分別叫做 stashing 和 commit amending）。目前已經提交了所有的修改，所以接下來可以正常轉換到 `master` 分支：
 
 	$ git checkout master
-	Switched to branch "master"
+	Switched to branch 'master'
 
-At this point, your project working directory is exactly the way it was before you started working on issue #53, and you can concentrate on your hotfix. This is an important point to remember: Git resets your working directory to look like the snapshot of the commit that the branch you check out points to. It adds, removes, and modifies files automatically to make sure your working copy is what the branch looked like on your last commit to it.
+此時工作目錄中的內容和你在解決問題 #53 之前一模一樣，你可以集中精力進行緊急修補。這一點值得牢記：Git 會把工作目錄的內容恢復為檢出某分支時它所指向的那個提交物件的快照。它會自動添加、刪除和修改檔以確保目錄的內容和你當時提交時完全一樣。
 
-Next, you have a hotfix to make. Let’s create a hotfix branch on which to work until it’s completed (see Figure 3-13):
+接下來，你得進行緊急修補。我們創建一個緊急修補分支 `hotfix` 來開展工作，直到搞定（見圖 3-13）：
 
-	$ git checkout -b 'hotfix'
-	Switched to a new branch "hotfix"
+	$ git checkout -b hotfix
+	Switched to a new branch 'hotfix'
 	$ vim index.html
 	$ git commit -a -m 'fixed the broken email address'
-	[hotfix]: created 3a0874c: "fixed the broken email address"
-	 1 files changed, 0 insertions(+), 1 deletions(-)
+	[hotfix 3a0874c] fixed the broken email address
+	 1 files changed, 1 deletion(-)
 
-Insert 18333fig0313.png 
-Figure 3-13. hotfix branch based back at your master branch point.
+Insert 18333fig0313.png
+圖 3-13. hotfix 分支是從 master 分支所在點分化出來的
 
-You can run your tests, make sure the hotfix is what you want, and merge it back into your master branch to deploy to production. You do this with the `git merge` command:
+有必要作些測試，確保修補是成功的，然後回到 `master` 分支並把它合併進來，然後發佈到生產伺服器。用 `git merge` 命令來進行合併：
 
 	$ git checkout master
 	$ git merge hotfix
 	Updating f42c576..3a0874c
-	Fast forward
-	 README |    1 -
-	 1 files changed, 0 insertions(+), 1 deletions(-)
+	Fast-forward
+	 README | 1 -
+	 1 file changed, 1 deletion(-)
 
-You’ll notice the phrase "Fast forward" in that merge. Because the commit pointed to by the branch you merged in was directly upstream of the commit you’re on, Git moves the pointer forward. To phrase that another way, when you try to merge one commit with a commit that can be reached by following the first commit’s history, Git simplifies things by moving the pointer forward because there is no divergent work to merge together — this is called a "fast forward".
+請注意，合併時出現了“Fast forward”的提示。由於當前 `master` 分支所在的提交物件是要併入的 `hotfix` 分支的直接上游，Git 只需把 `master` 分支指標直接右移。換句話說，如果順著一個分支走下去可以到達另一個分支的話，那麼 Git 在合併兩者時，只會簡單地把指標右移，因為這種單線的歷史分支不存在任何需要解決的分歧，所以這種合併過程可以稱為快進（Fast forward）。
 
-Your change is now in the snapshot of the commit pointed to by the `master` branch, and you can deploy your change (see Figure 3-14).
+現在最新的修改已經在當前 `master` 分支所指向的提交物件中了，可以部署到生產伺服器上去了（見圖 3-14）。
 
-Insert 18333fig0314.png 
-Figure 3-14. Your master branch points to the same place as your hotfix branch after the merge.
+Insert 18333fig0314.png
+圖 3-14. 合併之後，master 分支和 hotfix 分支指向同一位置。
 
-After your super-important fix is deployed, you’re ready to switch back to the work you were doing before you were interrupted. However, first you’ll delete the `hotfix` branch, because you no longer need it — the `master` branch points at the same place. You can delete it with the `-d` option to `git branch`:
+在那個超級重要的修補發佈以後，你想要回到被打擾之前的工作。由於當前 `hotfix` 分支和 `master` 都指向相同的提交物件，所以 `hotfix` 已經完成了歷史使命，可以刪掉了。使用 `git branch` 的 `-d` 選項執行刪除操作：
 
 	$ git branch -d hotfix
-	Deleted branch hotfix (3a0874c).
+	Deleted branch hotfix (was 3a0874c).
 
-Now you can switch back to your work-in-progress branch on issue #53 and continue working on it (see Figure 3-15):
+現在回到之前未完成的 #53 問題修復分支上繼續工作（圖 3-15）：
 
 	$ git checkout iss53
-	Switched to branch "iss53"
+	Switched to branch 'iss53'
 	$ vim index.html
 	$ git commit -a -m 'finished the new footer [issue 53]'
-	[iss53]: created ad82d7a: "finished the new footer [issue 53]"
-	 1 files changed, 1 insertions(+), 0 deletions(-)
+	[iss53 ad82d7a] finished the new footer [issue 53]
+	 1 file changed, 1 insertion(+)
 
-Insert 18333fig0315.png 
-Figure 3-15. Your iss53 branch can move forward independently.
+Insert 18333fig0315.png
+圖 3-15. iss53 分支可以不受影響繼續推進。
 
-It’s worth noting here that the work you did in your `hotfix` branch is not contained in the files in your `iss53` branch. If you need to pull it in, you can merge your `master` branch into your `iss53` branch by running `git merge master`, or you can wait to integrate those changes until you decide to pull the `iss53` branch back into `master` later.
+值得注意的是之前 `hotfix` 分支的修改內容尚未包含到 `iss53` 中來。如果需要納入此次修補，可以用 `git merge master` 把 master 分支合併到 `iss53`；或者等 `iss53` 完成之後，再將 `iss53` 分支中的更新併入 `master`。
 
-### Basic Merging ###
+### 分支的合併 ###
 
-Suppose you’ve decided that your issue #53 work is complete and ready to be merged into your `master` branch. In order to do that, you’ll merge in your `iss53` branch, much like you merged in your `hotfix` branch earlier. All you have to do is check out the branch you wish to merge into and then run the `git merge` command:
+在問題 #53 相關的工作完成之後，可以合併回 `master` 分支。實際操作同前面合併 `hotfix` 分支差不多，只需回到 `master` 分支，運行 `git merge` 命令指定要合併進來的分支：
 
 	$ git checkout master
 	$ git merge iss53
-	Merge made by recursive.
-	 README |    1 +
-	 1 files changed, 1 insertions(+), 0 deletions(-)
+	Auto-merging README
+	Merge made by the 'recursive' strategy.
+	 README | 1 +
+	 1 file changed, 1 insertion(+)
 
-This looks a bit different than the `hotfix` merge you did earlier. In this case, your development history has diverged from some older point. Because the commit on the branch you’re on isn’t a direct ancestor of the branch you’re merging in, Git has to do some work. In this case, Git does a simple three-way merge, using the two snapshots pointed to by the branch tips and the common ancestor of the two. Figure 3-16 highlights the three snapshots that Git uses to do its merge in this case.
+請注意，這次合併操作的底層實現，並不同於之前 `hotfix` 的併入方式。因為這次你的開發歷史是從更早的地方開始分叉的。由於當前 `master` 分支所指向的提交物件（C4）並不是 `iss53` 分支的直接祖先，Git 不得不進行一些額外處理。就此例而言，Git 會用兩個分支的末端（C4 和 C5）以及它們的共同祖先（C2）進行一次簡單的三方合併計算。圖 3-16 用紅框標出了 Git 用於合併的三個提交對象：
 
-Insert 18333fig0316.png 
-Figure 3-16. Git automatically identifies the best common-ancestor merge base for branch merging.
+Insert 18333fig0316.png
+圖 3-16. Git 為分支合併自動識別出最佳的同源合併點。
 
-Instead of just moving the branch pointer forward, Git creates a new snapshot that results from this three-way merge and automatically creates a new commit that points to it (see Figure 3-17). This is referred to as a merge commit and is special in that it has more than one parent.
+這次，Git 沒有簡單地把分支指標右移，而是對三方合併後的結果重新做一個新的快照，並自動創建一個指向它的提交物件（C6）（見圖 3-17）。這個提交物件比較特殊，它有兩個祖先（C4 和 C5）。
 
-It’s worth pointing out that Git determines the best common ancestor to use for its merge base; this is different than CVS or Subversion (before version 1.5), where the developer doing the merge has to figure out the best merge base for themselves. This makes merging a heck of a lot easier in Git than in these other systems.
+值得一提的是 Git 可以自己裁決哪個共同祖先才是最佳合併基礎；這和 CVS 或 Subversion（1.5 以後的版本）不同，它們需要開發者手工指定合併基礎。所以此特性讓 Git 的合併操作比其他系統都要簡單不少。
 
-Insert 18333fig0317.png 
-Figure 3-17. Git automatically creates a new commit object that contains the merged work.
+Insert 18333fig0317.png
+圖 3-17. Git 自動創建了一個包含了合併結果的提交物件。
 
-Now that your work is merged in, you have no further need for the `iss53` branch. You can delete it and then manually close the ticket in your ticket-tracking system:
+既然之前的工作成果已經合併到 `master` 了，那麼 `iss53` 也就沒用了。你可以就此刪除它，並在問題追蹤系統裡關閉該問題。
 
 	$ git branch -d iss53
 
-### Basic Merge Conflicts ###
+### 遇到衝突時的分支合併 ###
 
-Occasionally, this process doesn’t go smoothly. If you changed the same part of the same file differently in the two branches you’re merging together, Git won’t be able to merge them cleanly. If your fix for issue #53 modified the same part of a file as the `hotfix`, you’ll get a merge conflict that looks something like this:
+有時候合併操作並不會如此順利。如果在不同的分支中都修改了同一個檔的同一部分，Git 就無法乾淨地把兩者合到一起（譯注：邏輯上說，這種問題只能由人來裁決。）。如果你在解決問題 #53 的過程中修改了 `hotfix` 中修改的部分，將得到類似下面的結果：
 
 	$ git merge iss53
 	Auto-merging index.html
 	CONFLICT (content): Merge conflict in index.html
 	Automatic merge failed; fix conflicts and then commit the result.
 
-Git hasn’t automatically created a new merge commit. It has paused the process while you resolve the conflict. If you want to see which files are unmerged at any point after a merge conflict, you can run `git status`:
+Git 作了合併，但沒有提交，它會停下來等你解決衝突。要看看哪些檔在合併時發生衝突，可以用 `git status` 查閱：
 
-	[master*]$ git status
-	index.html: needs merge
-	# On branch master
-	# Changed but not updated:
-	#   (use "git add <file>..." to update what will be committed)
-	#   (use "git checkout -- <file>..." to discard changes in working directory)
-	#
-	#	unmerged:   index.html
-	#
+	$ git status
+	On branch master
+	You have unmerged paths.
+	  (fix conflicts and run "git commit")
+	
+	Unmerged paths:
+	  (use "git add <file>..." to mark resolution)
+	
+	        both modified:      index.html
+	
+	no changes added to commit (use "git add" and/or "git commit -a")
 
-Anything that has merge conflicts and hasn’t been resolved is listed as unmerged. Git adds standard conflict-resolution markers to the files that have conflicts, so you can open them manually and resolve those conflicts. Your file contains a section that looks something like this:
+任何包含未解決衝突的檔都會以未合併（unmerged）的狀態列出。Git 會在有衝突的檔裡加入標準的衝突解決標記，可以通過它們來手工定位並解決這些衝突。可以看到此檔包含類似下面這樣的部分：
 
-	<<<<<<< HEAD:index.html
+	<<<<<<< HEAD
 	<div id="footer">contact : email.support@github.com</div>
 	=======
 	<div id="footer">
 	  please contact us at support@github.com
 	</div>
-	>>>>>>> iss53:index.html
+	>>>>>>> iss53
 
-This means the version in HEAD (your master branch, because that was what you had checked out when you ran your merge command) is the top part of that block (everything above the `=======`), while the version in your `iss53` branch looks like everything in the bottom part. In order to resolve the conflict, you have to either choose one side or the other or merge the contents yourself. For instance, you might resolve this conflict by replacing the entire block with this:
+可以看到 `=======` 隔開的上半部分，是 `HEAD`（即 `master` 分支，在運行 `merge` 命令時所切換到的分支）中的內容，下半部分是在 `iss53` 分支中的內容。解決衝突的辦法無非是二者選其一或者由你親自整合到一起。比如你可以通過把這段內容替換為下面這樣來解決：
 
 	<div id="footer">
 	please contact us at email.support@github.com
 	</div>
 
-This resolution has a little of each section, and I’ve fully removed the `<<<<<<<`, `=======`, and `>>>>>>>` lines. After you’ve resolved each of these sections in each conflicted file, run `git add` on each file to mark it as resolved. Staging the file marks it as resolved in Git.
-If you want to use a graphical tool to resolve these issues, you can run `git mergetool`, which fires up an appropriate visual merge tool and walks you through the conflicts:
+這個解決方案各採納了兩個分支中的一部分內容，而且我還刪除了 `<<<<<<<`，`=======` 和 `>>>>>>>` 這些行。在解決了所有檔裡的所有衝突後，運行 `git add` 將把它們標記為已解決狀態（譯注：實際上就是來一次快照保存到暫存區域。）。因為一旦暫存，就表示衝突已經解決。如果你想用一個有圖形介面的工具來解決這些問題，不妨運行 `git mergetool`，它會調用一個視覺化的合併工具並引導你解決所有衝突：
 
 	$ git mergetool
-	merge tool candidates: kdiff3 tkdiff xxdiff meld gvimdiff opendiff emerge vimdiff
-	Merging the files: index.html
+
+	This message is displayed because 'merge.tool' is not configured.
+	See 'git mergetool --tool-help' or 'git help config' for more details.
+	'git mergetool' will now attempt to use one of the following tools:
+	opendiff kdiff3 tkdiff xxdiff meld tortoisemerge gvimdiff diffuse diffmerge ecmerge p4merge araxis bc3 codecompare vimdiff emerge
+	Merging:
+	index.html
 
 	Normal merge conflict for 'index.html':
-	  {local}: modified
-	  {remote}: modified
+	  {local}: modified file
+	  {remote}: modified file
 	Hit return to start merge resolution tool (opendiff):
 
-If you want to use a merge tool other than the default (Git chose `opendiff` for me in this case because I ran the command on a Mac), you can see all the supported tools listed at the top after “merge tool candidates”. Type the name of the tool you’d rather use. In Chapter 7, we’ll discuss how you can change this default value for your environment.
+如果不想用默認的合併工具（Git 為我默認選擇了 `opendiff`，因為我在 Mac 上運行了該命令），你可以在上方"merge tool candidates"裡找到可用的合併工具列表，輸入你想用的工具名。我們將在第七章討論怎樣改變環境中的預設值。
 
-After you exit the merge tool, Git asks you if the merge was successful. If you tell the script that it was, it stages the file to mark it as resolved for you.
+退出合併工具以後，Git 會詢問你合併是否成功。如果回答是，它會為你把相關檔暫存起來，以表明狀態為已解決。
 
-You can run `git status` again to verify that all conflicts have been resolved:
+再運行一次 `git status` 來確認所有衝突都已解決：
 
 	$ git status
-	# On branch master
-	# Changes to be committed:
-	#   (use "git reset HEAD <file>..." to unstage)
-	#
-	#	modified:   index.html
-	#
+	On branch master
+	Changes to be committed:
+	  (use "git reset HEAD <file>..." to unstage)
+	
+	        modified:   index.html
+	
 
-If you’re happy with that, and you verify that everything that had conflicts has been staged, you can type `git commit` to finalize the merge commit. The commit message by default looks something like this:
+如果覺得滿意了，並且確認所有衝突都已解決，也就是進入了暫存區，就可以用 `git commit` 來完成這次合併提交。提交的記錄差不多是這樣：
 
 	Merge branch 'iss53'
 
 	Conflicts:
 	  index.html
 	#
-	# It looks like you may be committing a MERGE.
+	# It looks like you may be committing a merge.
 	# If this is not correct, please remove the file
-	# .git/MERGE_HEAD
+	#       .git/MERGE_HEAD
 	# and try again.
 	#
 
-You can modify that message with details about how you resolved the merge if you think it would be helpful to others looking at this merge in the future — why you did what you did, if it’s not obvious.
+如果想給將來看這次合併的人一些方便，可以修改該資訊，提供更多合併細節。比如你都作了哪些改動，以及這麼做的原因。有時候裁決衝突的理由並不直接或明顯，有必要略加注解。
 
-## Branch Management ##
+## 分支的管理 ##
 
-Now that you’ve created, merged, and deleted some branches, let’s look at some branch-management tools that will come in handy when you begin using branches all the time.
+到目前為止，你已經學會了如何創建、合併和刪除分支。除此之外，我們還需要學習如何管理分支，在日後的常規工作中會經常用到下面介紹的管理命令。
 
-The `git branch` command does more than just create and delete branches. If you run it with no arguments, you get a simple listing of your current branches:
+`git branch` 命令不僅僅能創建和刪除分支，如果不加任何參數，它會給出當前所有分支的清單：
 
 	$ git branch
 	  iss53
 	* master
 	  testing
 
-Notice the `*` character that prefixes the `master` branch: it indicates the branch that you currently have checked out. This means that if you commit at this point, the `master` branch will be moved forward with your new work. To see the last commit on each branch, you can run `git branch –v`:
+注意看 `master` 分支前的 `*` 字元：它表示當前所在的分支。也就是說，如果現在提交更新，`master` 分支將隨著開發進度前移。若要查看各個分支最後一個提交物件的資訊，運行 `git branch -v`：
 
 	$ git branch -v
 	  iss53   93b412c fix javascript issue
 	* master  7a98805 Merge branch 'iss53'
 	  testing 782fd34 add scott to the author list in the readmes
 
-Another useful option to figure out what state your branches are in is to filter this list to branches that you have or have not yet merged into the branch you’re currently on. The useful `--merged` and `--no-merged` options have been available in Git since version 1.5.6 for this purpose. To see which branches are already merged into the branch you’re on, you can run `git branch –merged`:
+要從該清單中篩選出你已經（或尚未）與當前分支合併的分支，可以用 `--merged` 和 `--no-merged` 選項（Git 1.5.6 以上版本）。比如用 `git branch --merged` 查看哪些分支已被併入當前分支（譯注：也就是說哪些分支是當前分支的直接上游。）：
 
 	$ git branch --merged
 	  iss53
 	* master
 
-Because you already merged in `iss53` earlier, you see it in your list. Branches on this list without the `*` in front of them are generally fine to delete with `git branch -d`; you’ve already incorporated their work into another branch, so you’re not going to lose anything.
+之前我們已經合併了 `iss53`，所以在這裡會看到它。一般來說，清單中沒有 `*` 的分支通常都可以用 `git branch -d` 來刪掉。原因很簡單，既然已經把它們所包含的工作整合到了其他分支，刪掉也不會損失什麼。
 
-To see all the branches that contain work you haven’t yet merged in, you can run `git branch --no-merged`:
+另外可以用 `git branch --no-merged` 查看尚未合併的工作：
 
 	$ git branch --no-merged
 	  testing
 
-This shows your other branch. Because it contains work that isn’t merged in yet, trying to delete it with `git branch -d` will fail:
+它會顯示還未合併進來的分支。由於這些分支中還包含著尚未合併進來的工作成果，所以簡單地用 `git branch -d` 刪除該分支會提示錯誤，因為那樣做會丟失資料：
 
 	$ git branch -d testing
-	error: The branch 'testing' is not an ancestor of your current HEAD.
+	error: The branch 'testing' is not fully merged.
 	If you are sure you want to delete it, run 'git branch -D testing'.
 
-If you really do want to delete the branch and lose that work, you can force it with `-D`, as the helpful message points out.
+不過，如果你確實想要刪除該分支上的改動，可以用大寫的刪除選項 `-D` 強制執行，就像上面提示資訊中給出的那樣。
 
-## Branching Workflows ##
+## 利用分支進行開發的工作流程 ##
 
-Now that you have the basics of branching and merging down, what can or should you do with them? In this section, we’ll cover some common workflows that this lightweight branching makes possible, so you can decide if you would like to incorporate it into your own development cycle.
+現在我們已經學會了新建分支和合併分支，可以（或應該）用它來做點什麼呢？在本節，我們會介紹一些利用分支進行開發的工作流程。而正是由於分支管理的便捷，才衍生出了這類典型的工作模式，你可以根據專案的實際情況選擇一種用用看。
 
-### Long-Running Branches ###
+### 長期分支 ###
 
-Because Git uses a simple three-way merge, merging from one branch into another multiple times over a long period is generally easy to do. This means you can have several branches that are always open and that you use for different stages of your development cycle; you can merge regularly from some of them into others.
+由於 Git 使用簡單的三方合併，所以就算在較長一段時間內，反復多次把某個分支合併到另一分支，也不是什麼難事。也就是說，你可以同時擁有多個開放的分支，每個分支用於完成特定的任務，隨著開發的推進，你可以隨時把某個特性分支的成果並到其他分支中。
 
-Many Git developers have a workflow that embraces this approach, such as having only code that is entirely stable in their `master` branch — possibly only code that has been or will be released. They have another parallel branch named develop or next that they work from or use to test stability — it isn’t necessarily always stable, but whenever it gets to a stable state, it can be merged into `master`. It’s used to pull in topic branches (short-lived branches, like your earlier `iss53` branch) when they’re ready, to make sure they pass all the tests and don’t introduce bugs.
+許多使用 Git 的開發者都喜歡用這種方式來開展工作，比如僅在 `master` 分支中保留完全穩定的代碼，即已經發佈或即將發佈的代碼。與此同時，他們還有一個名為 `develop` 或 `next` 的平行分支，專門用於後續的開發，或僅用於穩定性測試 — 當然並不是說一定要絕對穩定，不過一旦進入某種穩定狀態，便可以把它合併到 `master` 裡。這樣，在確保這些已完成的特性分支（短期分支，比如之前的 `iss53` 分支）能夠通過所有測試，並且不會引入更多錯誤之後，就可以並到主幹分支中，等待下一次的發佈。
 
-In reality, we’re talking about pointers moving up the line of commits you’re making. The stable branches are farther down the line in your commit history, and the bleeding-edge branches are farther up the history (see Figure 3-18).
+本質上我們剛才談論的，是隨著提交物件不斷右移的指標。穩定分支的指標總是在提交歷史中落後一大截，而前沿分支總是比較靠前（見圖 3-18）。
 
-Insert 18333fig0318.png 
-Figure 3-18. More stable branches are generally farther down the commit history.
+Insert 18333fig0318.png
+圖 3-18. 穩定分支總是比較老舊。
 
-It’s generally easier to think about them as work silos, where sets of commits graduate to a more stable silo when they’re fully tested (see Figure 3-19).
+或者把它們想像成工作流水線，或許更好理解一些，經過測試的提交物件集合被遴選到更穩定的流水線（見圖 3-19）。
 
-Insert 18333fig0319.png 
-Figure 3-19. It may be helpful to think of your branches as silos.
+Insert 18333fig0319.png
+圖 3-19. 想像成流水線可能會容易點。
 
-You can keep doing this for several levels of stability. Some larger projects also have a `proposed` or `pu` (proposed updates) branch that has integrated branches that may not be ready to go into the `next` or `master` branch. The idea is that your branches are at various levels of stability; when they reach a more stable level, they’re merged into the branch above them.
-Again, having multiple long-running branches isn’t necessary, but it’s often helpful, especially when you’re dealing with very large or complex projects.
+你可以用這招維護不同層次的穩定性。某些大專案還會有個 `proposed`（建議）或 `pu`（proposed updates，建議更新）分支，它包含著那些可能還沒有成熟到進入 `next` 或 `master` 的內容。這麼做的目的是擁有不同層次的穩定性：當這些分支進入到更穩定的水準時，再把它們合併到更高層分支中去。再次說明下，使用多個長期分支的做法並非必需，不過一般來說，對於特大型項目或特複雜的專案，這麼做確實更容易管理。
 
-### Topic Branches ###
+### 特性分支 ###
 
-Topic branches, however, are useful in projects of any size. A topic branch is a short-lived branch that you create and use for a single particular feature or related work. This is something you’ve likely never done with a VCS before because it’s generally too expensive to create and merge branches. But in Git it’s common to create, work on, merge, and delete branches several times a day.
+在任何規模的專案中都可以使用特性（Topic）分支。一個特性分支是指一個短期的，用來實現單一特性或與其相關工作的分支。可能你在以前的版本控制系統裡從未做過類似這樣的事情，因為通常創建與合併分支消耗太大。然而在 Git 中，一天之內建立、使用、合併再刪除多個分支是常見的事。
 
-You saw this in the last section with the `iss53` and `hotfix` branches you created. You did a few commits on them and deleted them directly after merging them into your main branch. This technique allows you to context-switch quickly and completely — because your work is separated into silos where all the changes in that branch have to do with that topic, it’s easier to see what has happened during code review and such. You can keep the changes there for minutes, days, or months, and merge them in when they’re ready, regardless of the order in which they were created or worked on.
+我們在上節的例子裡已經見過這種用法了。我們創建了 `iss53` 和 `hotfix` 這兩個特性分支，在提交了若干更新後，把它們合併到主幹分支，然後刪除。該技術允許你迅速且完全的進行語境切換 — 因為你的工作分散在不同的流水線裡，每個分支裡的改變都和它的目標特性相關，流覽代碼之類的事情因而變得更簡單了。你可以把作出的改變保持在特性分支中幾分鐘，幾天甚至幾個月，等它們成熟以後再合併，而不用在乎它們建立的順序或者進度。
 
-Consider an example of doing some work (on `master`), branching off for an issue (`iss91`), working on it for a bit, branching off the second branch to try another way of handling the same thing (`iss91v2`), going back to your master branch and working there for a while, and then branching off there to do some work that you’re not sure is a good idea (`dumbidea` branch). Your commit history will look something like Figure 3-20.
+現在我們來看一個實際的例子。請看圖 3-20，由下往上，起先我們在 `master` 工作到 C1，然後開始一個新分支 `iss91` 嘗試修復 91 號缺陷，提交到 C6 的時候，又冒出一個解決該問題的新辦法，於是從之前 C4 的地方又分出一個分支 `iss91v2`，幹到 C8 的時候，又回到主幹 `master` 中提交了 C9 和 C10，再回到 `iss91v2` 繼續工作，提交 C11，接著，又冒出個不太確定的想法，從 `master` 的最新提交 C10 處開了個新的分支 `dumbidea` 做些試驗。
 
-Insert 18333fig0320.png 
-Figure 3-20. Your commit history with multiple topic branches.
+Insert 18333fig0320.png
+圖 3-20. 擁有多個特性分支的提交歷史。
 
-Now, let’s say you decide you like the second solution to your issue best (`iss91v2`); and you showed the `dumbidea` branch to your coworkers, and it turns out to be genius. You can throw away the original `iss91` branch (losing commits C5 and C6) and merge in the other two. Your history then looks like Figure 3-21.
+現在，假定兩件事情：我們最終決定使用第二個解決方案，即 `iss91v2` 中的辦法；另外，我們把 `dumbidea` 分支拿給同事們看了以後，發現它竟然是個天才之作。所以接下來，我們準備拋棄原來的 `iss91` 分支（實際上會丟棄 C5 和 C6），直接在主幹中併入另外兩個分支。最終的提交歷史將變成圖 3-21 這樣：
 
-Insert 18333fig0321.png 
-Figure 3-21. Your history after merging in dumbidea and iss91v2.
+Insert 18333fig0321.png
+圖 3-21. 合併了 dumbidea 和 iss91v2 後的分支歷史。
 
-It’s important to remember when you’re doing all this that these branches are completely local. When you’re branching and merging, everything is being done only in your Git repository — no server communication is happening.
+請務必牢記這些分支全部都是本地分支，這一點很重要。當你在使用分支及合併的時候，一切都是在你自己的 Git 倉庫中進行的 — 完全不涉及與伺服器的交互。
 
-## Remote Branches ##
+## 遠端分支 ##
 
-Remote branches are references to the state of branches on your remote repositories. They’re local branches that you can’t move; they’re moved automatically whenever you do any network communication. Remote branches act as bookmarks to remind you where the branches on your remote repositories were the last time you connected to them.
+遠端分支（remote branch）是對遠端倉庫中的分支的索引。它們是一些無法移動的本地分支；只有在 Git 進行網路交互時才會更新。遠端分支就像是書簽，提醒著你上次連接遠端倉庫時上面各分支的位置。 
 
-They take the form `(remote)/(branch)`. For instance, if you wanted to see what the `master` branch on your `origin` remote looked like as of the last time you communicated with it, you would check the `origin/master` branch. If you were working on an issue with a partner and they pushed up an `iss53` branch, you might have your own local `iss53` branch; but the branch on the server would point to the commit at `origin/iss53`.
+我們用 `(遠端倉庫名)/(分支名)` 這樣的形式表示遠端分支。比如我們想看看上次同 `origin` 倉庫通訊時 `master` 分支的樣子，就應該查看 `origin/master` 分支。如果你和同伴一起修復某個問題，但他們先推送了一個 `iss53` 分支到遠端倉庫，雖然你可能也有一個本地的 `iss53` 分支，但指向伺服器上最新更新的卻應該是 `origin/iss53` 分支。
 
-This may be a bit confusing, so let’s look at an example. Let’s say you have a Git server on your network at `git.ourcompany.com`. If you clone from this, Git automatically names it `origin` for you, pulls down all its data, creates a pointer to where its `master` branch is, and names it `origin/master` locally; and you can’t move it. Git also gives you your own `master` branch starting at the same place as origin’s `master` branch, so you have something to work from (see Figure 3-22).
+可能有點亂，我們不妨舉例說明。假設你們團隊有個地址為 `git.ourcompany.com` 的 Git 伺服器。如果你從這裡克隆，Git 會自動為你將此遠端倉庫命名為 `origin`，並下載其中所有的資料，建立一個指向它的 `master` 分支的指標，在本地命名為 `origin/master`，但你無法在本地更改其資料。接著，Git 建立一個屬於你自己的本地 `master` 分支，始於 `origin` 上 `master` 分支相同的位置，你可以就此開始工作（見圖 3-22）：
 
-Insert 18333fig0322.png 
-Figure 3-22. A Git clone gives you your own master branch and origin/master pointing to origin’s master branch.
+Insert 18333fig0322.png
+圖 3-22. 一次 Git 克隆會建立你自己的本地分支 master 和遠端分支 origin/master，並且將它們都指向 `origin` 上的 `master` 分支。
 
-If you do some work on your local master branch, and, in the meantime, someone else pushes to `git.ourcompany.com` and updates its master branch, then your histories move forward differently. Also, as long as you stay out of contact with your origin server, your `origin/master` pointer doesn’t move (see Figure 3-23).
+如果你在本地 `master` 分支做了些改動，與此同時，其他人向 `git.ourcompany.com` 推送了他們的更新，那麼伺服器上的 `master` 分支就會向前推進，而於此同時，你在本地的提交歷史正朝向不同方向發展。不過只要你不和伺服器通訊，你的 `origin/master` 指標仍然保持原位不會移動（見圖 3-23）。
 
-Insert 18333fig0323.png 
-Figure 3-23. Working locally and having someone push to your remote server makes each history move forward differently.
+Insert 18333fig0323.png
+圖 3-23. 在本地工作的同時有人向遠端倉庫推送內容會讓提交歷史開始分流。
 
-To synchronize your work, you run a `git fetch origin` command. This command looks up which server origin is (in this case, it’s `git.ourcompany.com`), fetches any data from it that you don’t yet have, and updates your local database, moving your `origin/master` pointer to its new, more up-to-date position (see Figure 3-24).
+可以運行 `git fetch origin` 來同步遠端伺服器上的資料到本地。該命令首先找到 `origin` 是哪個伺服器（本例為 `git.ourcompany.com`），從上面獲取你尚未擁有的資料，更新你本地的資料庫，然後把 `origin/master` 的指針移到它最新的位置上（見圖 3-24）。
 
-Insert 18333fig0324.png 
-Figure 3-24. The git fetch command updates your remote references.
+Insert 18333fig0324.png
+圖 3-24. git fetch 命令會更新 remote 索引。
 
-To demonstrate having multiple remote servers and what remote branches for those remote projects look like, let’s assume you have another internal Git server that is used only for development by one of your sprint teams. This server is at `git.team1.ourcompany.com`. You can add it as a new remote reference to the project you’re currently working on by running the `git remote add` command as we covered in Chapter 2. Name this remote `teamone`, which will be your shortname for that whole URL (see Figure 3-25).
+為了演示擁有多個遠端分支（在不同的遠端伺服器上）的專案是如何工作的，我們假設你還有另一個僅供你的敏捷開發小組使用的內部伺服器 `git.team1.ourcompany.com`。可以用第二章中提到的 `git remote add` 命令把它加為當前專案的遠端分支之一。我們把它命名為 `teamone`，以便代替完整的 Git URL 以方便使用（見圖 3-25）。
 
-Insert 18333fig0325.png 
-Figure 3-25. Adding another server as a remote.
+Insert 18333fig0325.png
+圖 3-25. 把另一個伺服器加為遠端倉庫
 
-Now, you can run `git fetch teamone` to fetch everything server has that you don’t have yet. Because that server is a subset of the data your `origin` server has right now, Git fetches no data but sets a remote branch called `teamone/master` to point to the commit that `teamone` has as its `master` branch (see Figure 3-26).
+現在你可以用 `git fetch teamone` 來獲取小組伺服器上你還沒有的資料了。由於當前該伺服器上的內容是你 `origin` 伺服器上的子集，Git 不會下載任何資料，而只是簡單地創建一個名為 `teamone/master` 的遠端分支，指向 `teamone` 伺服器上 `master` 分支所在的提交物件 `31b8e`（見圖 3-26）。
 
-Insert 18333fig0326.png 
-Figure 3-26. You get a reference to teamone’s master branch position locally.
+Insert 18333fig0326.png
+圖 3-26. 你在本地有了一個指向 teamone 伺服器上 master 分支的索引。
 
-### Pushing ###
+### 推送本地分支 ###
 
-When you want to share a branch with the world, you need to push it up to a remote that you have write access to. Your local branches aren’t automatically synchronized to the remotes you write to — you have to explicitly push the branches you want to share. That way, you can use private branches for work you don’t want to share, and push up only the topic branches you want to collaborate on.
+要想和其他人分享某個本地分支，你需要把它推送到一個你擁有寫許可權的遠端倉庫。你創建的本地分支不會因為你的寫入操作而被自動同步到你引入的遠端伺服器上，你需要明確地執行推送分支的操作。換句話說，對於無意分享的分支，你儘管保留為私人分支好了，而只推送那些協同工作要用到的特性分支。
 
-If you have a branch named `serverfix` that you want to work on with others, you can push it up the same way you pushed your first branch. Run `git push (remote) (branch)`:
+如果你有個叫 `serverfix` 的分支需要和他人一起開發，可以運行 `git push (遠端倉庫名) (分支名)`：
 
 	$ git push origin serverfix
 	Counting objects: 20, done.
@@ -422,9 +428,9 @@ If you have a branch named `serverfix` that you want to work on with others, you
 	To git@github.com:schacon/simplegit.git
 	 * [new branch]      serverfix -> serverfix
 
-This is a bit of a shortcut. Git automatically expands the `serverfix` branchname out to `refs/heads/serverfix:refs/heads/serverfix`, which means, “Take my serverfix local branch and push it to update the remote’s serverfix branch.” We’ll go over the `refs/heads/` part in detail in Chapter 9, but you can generally leave it off. You can also do `git push origin serverfix:serverfix`, which does the same thing — it says, “Take my serverfix and make it the remote’s serverfix.” You can use this format to push a local branch into a remote branch that is named differently. If you didn’t want it to be called `serverfix` on the remote, you could instead run `git push origin serverfix:awesomebranch` to push your local `serverfix` branch to the `awesomebranch` branch on the remote project.
+這裡其實走了一點捷徑。Git 自動把 `serverfix` 分支名擴展為 `refs/heads/serverfix:refs/heads/serverfix`，意為“取出我在本地的 serverfix 分支，推送到遠端倉庫的 serverfix 分支中去”。我們將在第九章進一步介紹 `refs/heads/` 部分的細節，不過一般使用的時候都可以省略它。也可以運行 `git push origin serverfix:serverfix` 來實現相同的效果，它的意思是“上傳我本地的 serverfix 分支到遠端倉庫中去，仍舊稱它為 serverfix 分支”。通過此語法，你可以把本地分支推送到某個命名不同的遠端分支：若想把遠端分支叫作 `awesomebranch`，可以用 `git push origin serverfix:awesomebranch` 來推送數據。
 
-The next time one of your collaborators fetches from the server, they will get a reference to where the server’s version of `serverfix` is under the remote branch `origin/serverfix`:
+接下來，當你的協作者再次從伺服器上獲取資料時，他們將得到一個新的遠端分支 `origin/serverfix`，並指向伺服器上 `serverfix` 所指向的版本：
 
 	$ git fetch origin
 	remote: Counting objects: 20, done.
@@ -434,165 +440,165 @@ The next time one of your collaborators fetches from the server, they will get a
 	From git@github.com:schacon/simplegit
 	 * [new branch]      serverfix    -> origin/serverfix
 
-It’s important to note that when you do a fetch that brings down new remote branches, you don’t automatically have local, editable copies of them. In other words, in this case, you don’t have a new `serverfix` branch — you only have an `origin/serverfix` pointer that you can’t modify.
+值得注意的是，在 `fetch` 操作下載好新的遠端分支之後，你仍然無法在本地編輯該遠端倉庫中的分支。換句話說，在本例中，你不會有一個新的 `serverfix` 分支，有的只是一個你無法移動的 `origin/serverfix` 指標。
 
-To merge this work into your current working branch, you can run `git merge origin/serverfix`. If you want your own `serverfix` branch that you can work on, you can base it off your remote branch:
+如果要把該遠端分支的內容合併到當前分支，可以運行 `git merge origin/serverfix`。如果想要一份自己的 `serverfix` 來開發，可以在遠端分支的基礎上分化出一個新的分支來：
 
 	$ git checkout -b serverfix origin/serverfix
-	Branch serverfix set up to track remote branch refs/remotes/origin/serverfix.
-	Switched to a new branch "serverfix"
+	Branch serverfix set up to track remote branch serverfix from origin.
+	Switched to a new branch 'serverfix'
 
-This gives you a local branch that you can work on that starts where `origin/serverfix` is.
+這會切換到新建的 `serverfix` 本地分支，其內容同遠端分支 `origin/serverfix` 一致，這樣你就可以在裡面繼續開發了。
 
-### Tracking Branches ###
+### 跟蹤遠端分支 ###
 
-Checking out a local branch from a remote branch automatically creates what is called a _tracking branch_. Tracking branches are local branches that have a direct relationship to a remote branch. If you’re on a tracking branch and type git push, Git automatically knows which server and branch to push to. Also, running `git pull` while on one of these branches fetches all the remote references and then automatically merges in the corresponding remote branch.
+從遠端分支 `checkout` 出來的本地分支，稱為 _跟蹤分支_ (tracking branch)。跟蹤分支是一種和某個遠端分支有直接聯繫的本地分支。在跟蹤分支裡輸入 `git push`，Git 會自行推斷應該向哪個伺服器的哪個分支推送資料。同樣，在這些分支裡運行 `git pull` 會獲取所有遠端索引，並把它們的資料都合併到本地分支中來。
 
-When you clone a repository, it generally automatically creates a `master` branch that tracks `origin/master`. That’s why `git push` and `git pull` work out of the box with no other arguments. However, you can set up other tracking branches if you wish — ones that don’t track branches on `origin` and don’t track the `master` branch. The simple case is the example you just saw, running `git checkout -b [branch] [remotename]/[branch]`. If you have Git version 1.6.2 or later, you can also use the `--track` shorthand:
+在克隆倉庫時，Git 通常會自動創建一個名為 `master` 的分支來跟蹤 `origin/master`。這正是 `git push` 和 `git pull` 一開始就能正常工作的原因。當然，你可以隨心所欲地設定為其它跟蹤分支，比如 `origin` 上除了 `master` 之外的其它分支。剛才我們已經看到了這樣的一個例子：`git checkout -b [分支名] [遠端名]/[分支名]`。如果你有 1.6.2 以上版本的 Git，還可以用 `--track` 選項簡化：
 
 	$ git checkout --track origin/serverfix
-	Branch serverfix set up to track remote branch refs/remotes/origin/serverfix.
-	Switched to a new branch "serverfix"
+	Branch serverfix set up to track remote branch serverfix from origin.
+	Switched to a new branch 'serverfix'
 
-To set up a local branch with a different name than the remote branch, you can easily use the first version with a different local branch name:
+要為本地分支設定不同于遠端分支的名字，只需在第一個版本的命令裡換個名字：
 
 	$ git checkout -b sf origin/serverfix
-	Branch sf set up to track remote branch refs/remotes/origin/serverfix.
-	Switched to a new branch "sf"
+	Branch sf set up to track remote branch serverfix from origin.
+	Switched to a new branch 'sf'
 
-Now, your local branch sf will automatically push to and pull from origin/serverfix.
+現在你的本地分支 `sf` 會自動將推送和抓取資料的位置定位到 `origin/serverfix` 了。
 
-### Deleting Remote Branches ###
+### 刪除遠端分支 ###
 
-Suppose you’re done with a remote branch — say, you and your collaborators are finished with a feature and have merged it into your remote’s `master` branch (or whatever branch your stable codeline is in). You can delete a remote branch using the rather obtuse syntax `git push [remotename] :[branch]`. If you want to delete your `serverfix` branch from the server, you run the following:
+如果不再需要某個遠端分支了，比如搞定了某個特性並把它合併進了遠端的 `master` 分支（或任何其他存放穩定代碼的分支），可以用這個非常無厘頭的語法來刪除它：`git push [遠程名] :[分支名]`。如果想在伺服器上刪除 `serverfix` 分支，運行下面的命令：
 
 	$ git push origin :serverfix
 	To git@github.com:schacon/simplegit.git
 	 - [deleted]         serverfix
 
-Boom. No more branch on your server. You may want to dog-ear this page, because you’ll need that command, and you’ll likely forget the syntax. A way to remember this command is by recalling the `git push [remotename] [localbranch]:[remotebranch]` syntax that we went over a bit earlier. If you leave off the `[localbranch]` portion, then you’re basically saying, “Take nothing on my side and make it be `[remotebranch]`.”
+咚！伺服器上的分支沒了。你最好特別留心這一頁，因為你一定會用到那個命令，而且你很可能會忘掉它的語法。有種方便記憶這條命令的方法：記住我們不久前見過的 `git push [遠端名] [本地分支]:[遠端分支]` 語法，如果省略 `[本地分支]`，那就等於是在說“在這裡提取空白然後把它變成`[遠端分支]`”。
 
-## Rebasing ##
+## 分支的衍合 ##
 
-In Git, there are two main ways to integrate changes from one branch into another: the `merge` and the `rebase`. In this section you’ll learn what rebasing is, how to do it, why it’s a pretty amazing tool, and in what cases you won’t want to use it.
+把一個分支中的修改整合到另一個分支的辦法有兩種：`merge` 和 `rebase`（譯注：`rebase` 的翻譯暫定為“衍合”，大家知道就可以了。）。在本章我們會學習什麼是衍合，如何使用衍合，為什麼衍合操作如此富有魅力，以及我們應該在什麼情況下使用衍合。
 
-### The Basic Rebase ###
+### 基本的衍合操作 ###
 
-If you go back to an earlier example from the Merge section (see Figure 3-27), you can see that you diverged your work and made commits on two different branches.
+請回顧之前有關合併的一節（見圖 3-27），你會看到開發進程分叉到兩個不同分支，又各自提交了更新。
 
-Insert 18333fig0327.png 
-Figure 3-27. Your initial diverged commit history.
+Insert 18333fig0327.png
+圖 3-27. 最初分叉的提交歷史。
 
-The easiest way to integrate the branches, as we’ve already covered, is the `merge` command. It performs a three-way merge between the two latest branch snapshots (C3 and C4) and the most recent common ancestor of the two (C2), creating a new snapshot (and commit), as shown in Figure 3-28.
+之前介紹過，最容易的整合分支的方法是 `merge` 命令，它會把兩個分支最新的快照（C3 和 C4）以及二者最新的共同祖先（C2）進行三方合併，合併的結果是產生一個新的提交物件（C5）。如圖 3-28 所示：
 
-Insert 18333fig0328.png 
-Figure 3-28. Merging a branch to integrate the diverged work history.
+Insert 18333fig0328.png
+圖 3-28. 通過合併一個分支來整合分叉了的歷史。
 
-However, there is another way: you can take the patch of the change that was introduced in C3 and reapply it on top of C4. In Git, this is called _rebasing_. With the `rebase` command, you can take all the changes that were committed on one branch and replay them on another one.
+其實，還有另外一個選擇：你可以把在 C3 裡產生的變化補丁在 C4 的基礎上重新打一遍。在 Git 裡，這種操作叫做_衍合（rebase）_。有了 `rebase` 命令，就可以把在一個分支裡提交的改變移到另一個分支裡重放一遍。
 
-In this example, you’d run the following:
+在上面這個例子中，運行：
 
 	$ git checkout experiment
 	$ git rebase master
 	First, rewinding head to replay your work on top of it...
 	Applying: added staged command
 
-It works by going to the common ancestor of the two branches (the one you’re on and the one you’re rebasing onto), getting the diff introduced by each commit of the branch you’re on, saving those diffs to temporary files, resetting the current branch to the same commit as the branch you are rebasing onto, and finally applying each change in turn. Figure 3-29 illustrates this process.
+它的原理是回到兩個分支最近的共同祖先，根據當前分支（也就是要進行衍合的分支 `experiment`）後續的歷次提交物件（這裡只有一個 C3），生成一系列檔補丁，然後以基底分支（也就是主幹分支 `master`）最後一個提交物件（C4）為新的出發點，逐個應用之前準備好的補丁檔，最後會生成一個新的合併提交物件（C3'），從而改寫 `experiment` 的提交歷史，使它成為 `master` 分支的直接下游，如圖 3-29 所示：
 
-Insert 18333fig0329.png 
-Figure 3-29. Rebasing the change introduced in C3 onto C4.
+Insert 18333fig0329.png
+圖 3-29. 把 C3 裡產生的改變到 C4 上重演一遍。
 
-At this point, you can go back to the master branch and do a fast-forward merge (see Figure 3-30).
+現在回到 `master` 分支，進行一次快進合併（見圖 3-30）：
 
-Insert 18333fig0330.png 
-Figure 3-30. Fast-forwarding the master branch.
+Insert 18333fig0330.png
+圖 3-30. master 分支的快進。
 
-Now, the snapshot pointed to by C3 is exactly the same as the one that was pointed to by C5 in the merge example. There is no difference in the end product of the integration, but rebasing makes for a cleaner history. If you examine the log of a rebased branch, it looks like a linear history: it appears that all the work happened in series, even when it originally happened in parallel.
+現在的 C3' 對應的快照，其實和普通的三方合併，即上個例子中的 C5 對應的快照內容一模一樣了。雖然最後整合得到的結果沒有任何區別，但衍合能產生一個更為整潔的提交歷史。如果視察一個衍合過的分支的歷史記錄，看起來會更清楚：仿佛所有修改都是在一根線上先後進行的，儘管實際上它們原本是同時並行發生的。
 
-Often, you’ll do this to make sure your commits apply cleanly on a remote branch — perhaps in a project to which you’re trying to contribute but that you don’t maintain. In this case, you’d do your work in a branch and then rebase your work onto `origin/master` when you were ready to submit your patches to the main project. That way, the maintainer doesn’t have to do any integration work — just a fast-forward or a clean apply.
+一般我們使用衍合的目的，是想要得到一個能在遠端分支上乾淨應用的補丁 — 比如某些項目你不是維護者，但想幫點忙的話，最好用衍合：先在自己的一個分支裡進行開發，當準備向主專案提交補丁的時候，根據最新的 `origin/master` 進行一次衍合操作然後再提交，這樣維護者就不需要做任何整合工作（譯注：實際上是把解決分支補丁同最新主幹代碼之間衝突的責任，化轉為由提交補丁的人來解決。），只需根據你提供的倉庫位址作一次快進合併，或者直接採納你提交的補丁。
 
-Note that the snapshot pointed to by the final commit you end up with, whether it’s the last of the rebased commits for a rebase or the final merge commit after a merge, is the same snapshot — it’s only the history that is different. Rebasing replays changes from one line of work onto another in the order they were introduced, whereas merging takes the endpoints and merges them together.
+請注意，合併結果中最後一次提交所指向的快照，無論是通過衍合，還是三方合併，都會得到相同的快照內容，只不過提交歷史不同罷了。衍合是按照每行的修改次序重演一遍修改，而合併是把最終結果合在一起。
 
-### More Interesting Rebases ###
+### 有趣的衍合 ###
 
-You can also have your rebase replay on something other than the rebase branch. Take a history like Figure 3-31, for example. You branched a topic branch (`server`) to add some server-side functionality to your project, and made a commit. Then, you branched off that to make the client-side changes (`client`) and committed a few times. Finally, you went back to your server branch and did a few more commits.
+衍合也可以放到其他分支進行，並不一定非得根據分化之前的分支。以圖 3-31 的歷史為例，我們為了給伺服器端代碼添加一些功能而創建了特性分支 `server`，然後提交 C3 和 C4。然後又從 C3 的地方再增加一個 `client` 分支來對用戶端代碼進行一些相應修改，所以提交了 C8 和 C9。最後，又回到 `server` 分支提交了 C10。
 
-Insert 18333fig0331.png 
-Figure 3-31. A history with a topic branch off another topic branch.
+Insert 18333fig0331.png
+圖 3-31. 從一個特性分支裡再分出一個特性分支的歷史。
 
-Suppose you decide that you want to merge your client-side changes into your mainline for a release, but you want to hold off on the server-side changes until it’s tested further. You can take the changes on client that aren’t on server (C8 and C9) and replay them on your master branch by using the `--onto` option of `git rebase`:
+假設在接下來的一次軟體發佈中，我們決定先把用戶端的修改並到主線中，而暫緩併入服務端軟體的修改（因為還需要進一步測試）。這個時候，我們就可以把基於 `server` 分支而非 `master` 分支的改變（即 C8 和 C9），跳過 `server` 直接放到 `master` 分支中重演一遍，但這需要用 `git rebase` 的 `--onto` 選項指定新的基底分支 `master`：
 
 	$ git rebase --onto master server client
 
-This basically says, “Check out the client branch, figure out the patches from the common ancestor of the `client` and `server` branches, and then replay them onto `master`.” It’s a bit complex; but the result, shown in Figure 3-32, is pretty cool.
+這好比在說：“取出 `client` 分支，找出 `client` 分支和 `server` 分支的共同祖先之後的變化，然後把它們在 `master` 上重演一遍”。是不是有點複雜？不過它的結果如圖 3-32 所示，非常酷（譯注：雖然 `client` 裡的 C8, C9 在 C3 之後，但這僅表明時間上的先後，而非在 C3 修改的基礎上進一步改動，因為 `server` 和 `client` 這兩個分支對應的代碼應該是兩套檔，雖然這麼說不是很嚴格，但應理解為在 C3 時間點之後，對另外的檔所做的 C8，C9 修改，放到主幹重演。）：
 
-Insert 18333fig0332.png 
-Figure 3-32. Rebasing a topic branch off another topic branch.
+Insert 18333fig0332.png
+圖 3-32. 將特性分支上的另一個特性分支衍合到其他分支。
 
-Now you can fast-forward your master branch (see Figure 3-33):
+現在可以快進 `master` 分支了（見圖 3-33）：
 
 	$ git checkout master
 	$ git merge client
 
-Insert 18333fig0333.png 
-Figure 3-33. Fast-forwarding your master branch to include the client branch changes.
+Insert 18333fig0333.png
+圖 3-33. 快進 master 分支，使之包含 client 分支的變化。
 
-Let’s say you decide to pull in your server branch as well. You can rebase the server branch onto the master branch without having to check it out first by running `git rebase [basebranch] [topicbranch]` — which checks out the topic branch (in this case, `server`) for you and replays it onto the base branch (`master`):
+現在我們決定把 `server` 分支的變化也包含進來。我們可以直接把 `server` 分支衍合到 `master`，而不用手工切換到 `server` 分支後再執行衍合操作 — `git rebase [主分支] [特性分支]` 命令會先取出特性分支 `server`，然後在主分支 `master` 上重演：
 
 	$ git rebase master server
 
-This replays your `server` work on top of your `master` work, as shown in Figure 3-34.
+於是，`server` 的進度應用到 `master` 的基礎上，如圖 3-34 所示：
 
-Insert 18333fig0334.png 
-Figure 3-34. Rebasing your server branch on top of your master branch.
+Insert 18333fig0334.png
+圖 3-34. 在 master 分支上衍合 server 分支。
 
-Then, you can fast-forward the base branch (`master`):
+然後就可以快進主幹分支 `master` 了：
 
 	$ git checkout master
 	$ git merge server
 
-You can remove the `client` and `server` branches because all the work is integrated and you don’t need them anymore, leaving your history for this entire process looking like Figure 3-35:
+現在 `client` 和 `server` 分支的變化都已經集成到主幹分支來了，可以刪掉它們了。最終我們的提交歷史會變成圖 3-35 的樣子：
 
 	$ git branch -d client
 	$ git branch -d server
 
-Insert 18333fig0335.png 
-Figure 3-35. Final commit history.
+Insert 18333fig0335.png
+圖 3-35. 最終的提交歷史
 
-### The Perils of Rebasing ###
+### 衍合的風險 ###
 
-Ahh, but the bliss of rebasing isn’t without its drawbacks, which can be summed up in a single line:
+呃，奇妙的衍合也並非完美無缺，要用它得遵守一條準則：
 
-**Do not rebase commits that you have pushed to a public repository.**
+**一旦分支中的提交物件發佈到公共倉庫，就千萬不要對該分支進行衍合操作。**
 
-If you follow that guideline, you’ll be fine. If you don’t, people will hate you, and you’ll be scorned by friends and family.
+如果你遵循這條金科玉律，就不會出差錯。否則，人民群眾會仇恨你，你的朋友和家人也會嘲笑你，唾棄你。
 
-When you rebase stuff, you’re abandoning existing commits and creating new ones that are similar but different. If you push commits somewhere and others pull them down and base work on them, and then you rewrite those commits with `git rebase` and push them up again, your collaborators will have to re-merge their work and things will get messy when you try to pull their work back into yours.
+在進行衍合的時候，實際上拋棄了一些現存的提交物件而創造了一些類似但不同的新的提交物件。如果你把原來分支中的提交物件發佈出去，並且其他人更新下載後在其基礎上開展工作，而稍後你又用 `git rebase` 拋棄這些提交物件，把新的重演後的提交物件發佈出去的話，你的合作者就不得不重新合併他們的工作，這樣當你再次從他們那裡獲取內容時，提交歷史就會變得一團糟。
 
-Let’s look at an example of how rebasing work that you’ve made public can cause problems. Suppose you clone from a central server and then do some work off that. Your commit history looks like Figure 3-36.
+下面我們用一個實際例子來說明為什麼公開的衍合會帶來問題。假設你從一個中央伺服器克隆然後在它的基礎上搞了一些開發，提交歷史類似圖 3-36 所示：
 
-Insert 18333fig0336.png 
-Figure 3-36. Clone a repository, and base some work on it.
+Insert 18333fig0336.png
+圖 3-36. 克隆一個倉庫，在其基礎上工作一番。
 
-Now, someone else does more work that includes a merge, and pushes that work to the central server. You fetch them and merge the new remote branch into your work, making your history look something like Figure 3-37.
+現在，某人在 C1 的基礎上做了些改變，並合併他自己的分支得到結果 C6，推送到中央伺服器。當你抓取並合併這些資料到你本地的開發分支中後，會得到合併結果 C7，歷史提交會變成圖 3-37 這樣：
 
-Insert 18333fig0337.png 
-Figure 3-37. Fetch more commits, and merge them into your work.
+Insert 18333fig0337.png
+圖 3-37. 抓取他人提交，併入自己主幹。
 
-Next, the person who pushed the merged work decides to go back and rebase their work instead; they do a `git push --force` to overwrite the history on the server. You then fetch from that server, bringing down the new commits.
+接下來，那個推送 C6 上來的人決定用衍合取代之前的合併操作；繼而又用 `git push --force` 覆蓋了伺服器上的歷史，得到 C4'。而之後當你再從伺服器上下載最新提交後，會得到：
 
-Insert 18333fig0338.png 
-Figure 3-38. Someone pushes rebased commits, abandoning commits you’ve based your work on.
+Insert 18333fig0338.png
+圖 3-38. 有人推送了衍合後得到的 C4'，丟棄了你作為開發基礎的 C4 和 C6。
 
-At this point, you have to merge this work in again, even though you’ve already done so. Rebasing changes the SHA-1 hashes of these commits so to Git they look like new commits, when in fact you already have the C4 work in your history (see Figure 3-39).
+下載更新後需要合併，但此時衍合產生的提交物件 C4' 的 SHA-1 校驗值和之前 C4 完全不同，所以 Git 會把它們當作新的提交物件處理，而實際上此刻你的提交歷史 C7 中早已經包含了 C4 的修改內容，於是合併操作會把 C7 和 C4' 合併為 C8（見圖 3-39）:
 
-Insert 18333fig0339.png 
-Figure 3-39. You merge in the same work again into a new merge commit.
+Insert 18333fig0339.png
+圖 3-39. 你把相同的內容又合併了一遍，生成一個新的提交 C8。
 
-You have to merge that work in at some point so you can keep up with the other developer in the future. After you do that, your commit history will contain both the C4 and C4' commits, which have different SHA-1 hashes but introduce the same work and have the same commit message. If you run a `git log` when your history looks like this, you’ll see two commits that have the same author date and message, which will be confusing. Furthermore, if you push this history back up to the server, you’ll reintroduce all those rebased commits to the central server, which can further confuse people.
+C8 這一步的合併是遲早會發生的，因為只有這樣你才能和其他協作者提交的內容保持同步。而在 C8 之後，你的提交歷史裡就會同時包含 C4 和 C4'，兩者有著不同的 SHA-1 校驗值，如果用 `git log` 查看歷史，會看到兩個提交擁有相同的作者日期與說明，令人費解。而更糟的是，當你把這樣的歷史推送到伺服器後，會再次把這些衍合後的提交引入到中央伺服器，進一步困擾其他人（譯注：這個例子中，出問題的責任方是那個發佈了 C6 後又用衍合發佈 C4' 的人，其他人會因此回饋雙重歷史到共用主幹，從而混淆大家的視聽。）。
 
-If you treat rebasing as a way to clean up and work with commits before you push them, and if you only rebase commits that have never been available publicly, then you’ll be fine. If you rebase commits that have already been pushed publicly, and people may have based work on those commits, then you may be in for some frustrating trouble.
+如果把衍合當成一種在推送之前清理提交歷史的手段，而且僅僅衍合那些尚未公開的提交物件，就沒問題。如果衍合那些已經公開的提交物件，並且已經有人基於這些提交物件開展了後續開發工作的話，就會出現叫人沮喪的麻煩。
 
-## Summary ##
+## 小結 ##
 
-We’ve covered basic branching and merging in Git. You should feel comfortable creating and switching to new branches, switching between branches and merging local branches together.  You should also be able to share your branches by pushing them to a shared server, working with others on shared branches and rebasing your branches before they are shared.
+讀到這裡，你應該已經學會了如何創建分支並切換到新分支，在不同分支間轉換，合併本地分支，把分支推送到共用伺服器上，使用共用分支與他人協作，以及在分享之前進行衍合。
